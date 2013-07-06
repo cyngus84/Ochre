@@ -116,31 +116,34 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 		String cardList = "";
 		if (mPlayer != null) {
 			Card[] playerCards = mPlayer.getCurrentCards();
-			for (int ptr = 0; ptr < playerCards.length; ptr++) {
-				Card target = playerCards[ptr];
-				
-				// if there is no card, disable this button, otherwise, set
-				// it to the activation status of this player
-				if (target == null) {
+			for (int ptr = 0; ptr < mCards.length; ptr++) {
+
+				// does this slot contain a card?
+				if (ptr < playerCards.length) {
+					Log.d("JMATT", "Card " + ptr + " is present");
+					Card target = playerCards[ptr];
+
+					// if there is no card, disable this button, otherwise, set
+					// it to the activation status of this player
+					if (target == null) {
+						mCards[ptr].setClickable(false);
+					} else {
+						mCards[ptr].setClickable(mIsActive);
+					}
+
+					mCards[ptr].setText(target.toString());
+					if (target.getSuit() == Card.SUIT_DIAMONDS ||
+							target.getSuit() == Card.SUIT_HEARTS) {
+						mCards[ptr].setBackgroundColor(getResources().getColor(R.color.red_card));
+					} else {
+						mCards[ptr].setBackgroundColor(getResources().getColor(R.color.black_card));
+					}
+				} else {
+					Log.d("JMATT", "Card " + ptr + " NOT present");
 					mCards[ptr].setClickable(false);
-				} else {
-					mCards[ptr].setClickable(mIsActive);
+					mCards[ptr].setBackgroundColor(Color.GREEN);
+					mCards[ptr].setText("");
 				}
-				
-				mCards[ptr].setText(target.toString());
-				if (target.getSuit() == Card.SUIT_DIAMONDS ||
-						target.getSuit() == Card.SUIT_HEARTS) {
-					mCards[ptr].setBackgroundResource(R.color.red_card);
-				} else {
-					mCards[ptr].setBackgroundResource(R.color.black_card);
-				}
-			}
-			
-			
-			for (int ptr = playerCards.length; ptr < mCards.length; ptr++) {
-				mCards[ptr].setClickable(false);
-				mCards[ptr].setBackgroundColor(Color.GREEN);
-				mCards[ptr].setText("");
 			}
 		}
 		

@@ -2,6 +2,8 @@ package com.randomsymphony.games.ochre.model;
 
 import java.util.ArrayList;
 
+import android.util.Log;
+
 public class Player {
 
 	private String mName;
@@ -27,7 +29,7 @@ public class Player {
 		for (int ptr = 0, limit = mCards.size(); ptr < limit; ptr++) {
 			cards[ptr] = mCards.get(ptr);
 		}
-		
+		Log.d("JMATT", mName + " has " + cards.length + " cards");
 		return cards;
 	}
 	

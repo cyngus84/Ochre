@@ -9,6 +9,7 @@ import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.model.Round;
 
 import android.support.v4.app.Fragment;
+import android.util.Log;
 
 public class GameState extends Fragment {
 
@@ -17,6 +18,7 @@ public class GameState extends Fragment {
 	private DeckOfCards mDeck;
 	private int mCurrentTrump;
 	private ArrayList<Round> mRounds = new ArrayList<Round>();
+	private int mDealerOffset = -1;
 	
 	public GameState(PlayerFactory playerFactory) {
 		mPlayerSource = playerFactory;
@@ -41,8 +43,14 @@ public class GameState extends Fragment {
 	}
 	
 	public Round createNewRound(Player dealer) {
+		Log.d("JMATT", "Dealer for this round is: " + dealer.getName());
 		mRounds.add(new Round(dealer));
 		return getCurrentRound();
+	}
+	
+	public Round createNewRound() {
+		mDealerOffset++;
+		return createNewRound(mPlayers[mDealerOffset % mPlayers.length]);
 	}
 	
 	public Round getCurrentRound() {

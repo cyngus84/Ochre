@@ -38,6 +38,10 @@ public class GameEngine extends Fragment {
 	}
 	
 	public void startGame() {
+		newRound();
+	}
+	
+	public void newRound() {
 		mState.getDeck().shuffle();
     	Player[] players = mState.getPlayers();
     	for (int ptr = 0; ptr < players.length; ptr++) {
@@ -48,23 +52,45 @@ public class GameEngine extends Fragment {
         
         redrawAllPlayers();
 		
-		Round newRound = mState.createNewRound(mState.getPlayers()[0]);
+		Round newRound = mState.createNewRound();
 		// TODO this should really only be set after we know if a player
 		// is going alone or not.
 		newRound.tricks.add(new Play[4]);
 	}
 	
+	public static final int NUMBER_OF_TRICKS = 5;
+	
 	public void playCard(Player player, Card card) {
-		mState.getCurrentRound().addPlay(new Play(player, card));
+		Round currRound = mState.getCurrentRound();
+		currRound.addPlay(new Play(player, card));
 		Log.d("JMATT", player.getName() + " played " + card.toString());
-		if (mState.getCurrentRound().totalPlays % 4 == 0) {
-			Log.d("JMATT", "Need to score round.");
-		}
-		
+
 		player.discardCard(card);
 		// this is wasteful, would be better to just redraw one player
 		redrawAllPlayers();
 		mCardTable.playCard(card, player);
+		
+		if (currRound.totalPlays % currRound.getActivePlayers() == 0) {
+			Play[] trick = currRound.tricks.get(currRound.tricks.size() - 1);
+			Play winningPlay = trick[0];
+
+			for (int ptr = 1; ptr < trick.length; ptr++) {
+				if (GamePlayUtils.isGreater(trick[ptr].card, winningPlay.card,
+						trick[0].card.getSuit(), currRound.trump)) {
+					winningPlay = trick[ptr];
+				}
+			}
+			Log.d("JMATT", "And the winner is: " + winningPlay.card.toString());
+
+			if (currRound.totalPlays == currRound.getActivePlayers() * NUMBER_OF_TRICKS) {
+				// time for a new round
+				newRound();
+			} else {
+				// TODO we should actually only do this after trump is set and the
+				// maker decides to go alone or not
+				currRound.tricks.add(new Play[currRound.getActivePlayers()]);
+			}
+		}
 	}
 	
 	private void redrawAllPlayers() {
