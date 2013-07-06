@@ -1,0 +1,75 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".CardTableActivity" >
+
+	<ImageView
+	    android:id="@+id/table_felt"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_centerHorizontal="true"
+	    android:layout_centerVertical="true"
+	    android:src="@drawable/felt" />
+	<Button
+	    android:id="@+id/player0_card"
+	    android:layout_alignLeft="@id/table_felt"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_centerVertical="true"
+        style="@style/CardButton.PlayedCard" />
+	<Button
+	    android:id="@+id/player1_card"
+	    android:layout_alignTop="@id/table_felt"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_centerHorizontal="true"
+        style="@style/CardButton.PlayedCard" />
+	<Button
+	    android:id="@+id/player2_card"
+	    android:layout_alignRight="@id/table_felt"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_centerVertical="true"
+        style="@style/CardButton.PlayedCard" />
+	<Button
+	    android:id="@+id/player3_card"
+	    android:layout_alignBottom="@id/table_felt"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_centerHorizontal="true"
+        style="@style/CardButton.PlayedCard" />
+
+    <FrameLayout
+        android:id="@+id/player0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/player_margin"
+        android:layout_toLeftOf="@id/table_felt"
+        android:layout_centerVertical="true"/>
+    <FrameLayout
+        android:id="@+id/player1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/player_margin"
+        android:layout_above="@id/table_felt"
+        android:layout_centerHorizontal="true"/>
+    <FrameLayout
+        android:id="@+id/player2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/player_margin"
+        android:layout_toRightOf="@id/table_felt"
+        android:layout_centerVertical="true"/>
+    <FrameLayout
+        android:id="@+id/player3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/player_margin"
+        android:layout_below="@id/table_felt"
+        android:layout_centerHorizontal="true"/>
+</RelativeLayout>

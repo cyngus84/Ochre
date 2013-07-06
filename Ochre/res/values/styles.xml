@@ -1,0 +1,36 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+    <style name="AppBaseTheme" parent="android:Theme.Light">
+        <!--
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        -->
+    </style>
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="AppBaseTheme">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    </style>
+    
+    <style name="TextAppearanceRedSuit" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textColor">#FFFF2233</item>
+    </style>
+
+    <style name="CardButton" parent="@android:style/Widget.Button.Small">
+        <item name="android:layout_margin">@dimen/margin_card_button</item>
+        <item name="android:minWidth">@dimen/card_min_size</item>
+        <item name="android:padding">@dimen/card_padding</item>
+    </style>
+    
+    <style name="CardButton.PlayedCard">
+        <item name="android:visibility">invisible</item>
+    </style>
+    
+    <color name="red_card">#FFFF4444</color>
+    <color name="black_card">#FF999999</color>
+</resources>
