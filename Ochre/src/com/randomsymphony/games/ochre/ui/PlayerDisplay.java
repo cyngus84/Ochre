@@ -153,7 +153,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 		}
 		
 		// set visibility of extra card
-		mCards[DISCARD_SLOT].setVisibility(View.INVISIBLE);
+		mCards[DISCARD_SLOT].setVisibility(View.VISIBLE);
 
 		// set label of player
 		mPlayerLabel.setText("Hi, I'm " + (mPlayer != null ? mPlayer.getName() : "EMPTY") + "\n" + cardList);
