@@ -18,7 +18,12 @@ import android.util.Log;
 
 public class GameEngine extends Fragment {
 
+	public static final int NUMBER_OF_TRICKS = 5;
+
 	private TableDisplay mCardTable;
+	/**
+	 * Did I want this to map from view id to playerdisplay?
+	 */
 	private HashMap<Integer, PlayerDisplay> mPlayerDisplays = new HashMap<Integer, PlayerDisplay>();
 	private GameState mState;
 	
@@ -54,16 +59,13 @@ public class GameEngine extends Fragment {
         redrawAllPlayers();
 		
 		Round newRound = mState.createNewRound();
-		// TODO this should really only be set after we know if a player
-		// is going alone or not.
-		newRound.tricks.add(new Play[4]);
 		
 		// speculatively set the trump
 		newRound.trump = possibleTrump.getSuit();
+		mState.setGamePhase(GameState.Phase.ORDER_UP);
+		
 		setPlayerDisplayEnabled(getNextPlayer(), true);
 	}
-	
-	public static final int NUMBER_OF_TRICKS = 5;
 	
 	public void playCard(Player player, Card card) {
 		Round currRound = mState.getCurrentRound();
