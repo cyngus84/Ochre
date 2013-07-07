@@ -8,6 +8,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".CardTableActivity" >
     <FrameLayout
+        android:id="@+id/trump_controls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" />
+    <FrameLayout
         android:id="@+id/table_display"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

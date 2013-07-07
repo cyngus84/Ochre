@@ -34,6 +34,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 	private GameEngine mGameEngine;
 	private boolean mIsActive = false;
 	private boolean mExtraCardVisible = false;
+	private View mContent;
 
 	public PlayerDisplay() {
 		
@@ -62,10 +63,10 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		ViewGroup contentView = (ViewGroup) inflater.inflate(R.layout.fragment_play_display, null);
-		initViewReferences(contentView);
+		mContent = (ViewGroup) inflater.inflate(R.layout.fragment_play_display, null);
+		initViewReferences(mContent);
 		redraw();
-		return contentView;
+		return mContent;
 	}
 	
 	@Override
@@ -82,7 +83,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 		redraw();
 	}
 	
-	private void initViewReferences(ViewGroup content) {
+	private void initViewReferences(View content) {
 		mPlayerLabel = (TextView) content.findViewById(R.id.player_name);
 		mCards[DISCARD_SLOT] = (Button) content.findViewById(R.id.extra_card);
 		mCards[0] = (Button) content.findViewById(R.id.card1);
@@ -123,7 +124,6 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 			for (int ptr = 0; ptr < mCards.length; ptr++) {
 
 				if (mIsActive) {
-
 					// does this slot contain a card?
 					if (ptr < playerCards.length) {
 						Card target = playerCards[ptr];
@@ -148,6 +148,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 					mCards[ptr].setClickable(false);
 				}
 			}
+		} else {
+			throw new RuntimeException();
 		}
 		
 		// set visibility of extra card
@@ -155,6 +157,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 
 		// set label of player
 		mPlayerLabel.setText("Hi, I'm " + (mPlayer != null ? mPlayer.getName() : "EMPTY") + "\n" + cardList);
+		mContent.invalidate();
+		
 	}
 
 	private void cardClicked(int cardIndex) {

@@ -1,5 +1,6 @@
 package com.randomsymphony.games.ochre.logic;
 
+import java.security.spec.MGF1ParameterSpec;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.model.Round;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
+import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -25,6 +27,7 @@ public class GameEngine extends Fragment {
 	 */
 	private HashMap<Integer, PlayerDisplay> mPlayerDisplays = new HashMap<Integer, PlayerDisplay>();
 	private GameState mState;
+	private TrumpDisplay mTrumpDisplay;
 	
 	public void setPlayerDisplay(int player, PlayerDisplay display) {
 		mPlayerDisplays.put(player, display);
@@ -36,6 +39,10 @@ public class GameEngine extends Fragment {
 	
 	public void setGameState(GameState state) {
 		mState = state;
+	}
+	
+	public void setTrumpDisplay(TrumpDisplay display) {
+		mTrumpDisplay = display;
 	}
 	
 	public void startGame() {
@@ -64,6 +71,8 @@ public class GameEngine extends Fragment {
 		mState.setGamePhase(GameState.Phase.ORDER_UP);
 		
 		setPlayerDisplayEnabled(getNextPlayer(), true);
+		
+		mTrumpDisplay.setToOrderUpMode();
 	}
 	
 	public void playCard(Player player, Card card) {
@@ -101,10 +110,100 @@ public class GameEngine extends Fragment {
 		setPlayerDisplayEnabled(getNextPlayer(), true);
 	}
 	
+	/**
+	 * A player passed on setting trump.
+	 */
+	public void pass() {
+		if (mState.getGamePhase() != GameState.Phase.ORDER_UP &&
+				mState.getGamePhase() != GameState.Phase.PICK_TRUMP) {
+			throw new IllegalStateException("State is invalid for this operation.");
+		}
+		
+		Round currentRound = mState.getCurrentRound();
+		currentRound.trumpPasses++;
+		
+		// check if enough people have passed that we changed phases
+		if (currentRound.trumpPasses == currentRound.getActivePlayers()) {
+			if (mState.getGamePhase() != GameState.Phase.ORDER_UP) {
+				throw new IllegalStateException("In the wrong phase to tranisition to PICK_TRUMP");
+			}
+			
+			mState.setGamePhase(GameState.Phase.PICK_TRUMP);
+			mTrumpDisplay.setToPickMode();
+		} else if (currentRound.trumpPasses == currentRound.getActivePlayers() * 2 - 1) {
+			// disable the pass button if the next player is the dealer and
+			// this is the 7th pass
+			mTrumpDisplay.disablePass();
+		}
+		
+		Player currentPlayer = getNthPlayerInTrick(currentRound.dealer,
+				currentRound.trumpPasses, currentRound);
+		Log.d("JMATT", "Current player: " + currentPlayer.getName());
+		
+		// the next player is trumpPasses + 1 positions from the dealer because
+		// the first passer is one position left of the dealer
+		int positionFromDealer = currentRound.trumpPasses + 1;
+		Player nextPlayer = getNthPlayerInTrick(currentRound.dealer, positionFromDealer,
+				currentRound);
+		Log.d("JMATT", "Next player: " + nextPlayer.getName());
+
+		Log.d("JMATT", "Disabling current player.");
+		// disable current player
+		setPlayerDisplayEnabled(currentPlayer, false);
+		
+		Log.d("JMATT", "Enabling next player.");
+		// activate the next player
+		setPlayerDisplayEnabled(nextPlayer, true);
+		redrawAllPlayers();
+	}
+	
+	/**
+	 * A player selected to set trump.
+	 */
+	public void setTrump() {
+		if (mState.getGamePhase() != GameState.Phase.ORDER_UP &&
+				mState.getGamePhase() != GameState.Phase.PICK_TRUMP) {
+			throw new IllegalStateException("State is invalid for this operation.");
+		}
+
+		Round currentRound = mState.getCurrentRound();
+		// the trump setters position from the dealer, the first person to have
+		// an option to set trump is one position from the dealer
+		int positionFromDealer = currentRound.trumpPasses + 1;
+		Player currentPlayer = getNthPlayerInTrick(currentRound.dealer, positionFromDealer,
+				currentRound);
+		// the first player in a round is always the player to the left of the dealer
+		Player roundStarter = getNthPlayerInTrick(currentRound.dealer, 1, currentRound);
+		
+		// set trump
+		if (mState.getGamePhase() == GameState.Phase.ORDER_UP) {
+			// trump set as the extra card
+			// nothing to do really, but activate the right player, trump for
+			// the round was set speculatively in newRound()
+			setPlayerDisplayEnabled(currentPlayer, false);
+			setPlayerDisplayEnabled(roundStarter, true);
+		} else {
+			// trump set by player
+			throw new RuntimeException("Not supported yet.");
+		}
+		
+		// set maker
+		currentRound.maker = currentPlayer;
+		Log.d("JMATT", "Maker is: " + currentPlayer.getName());
+		
+		// disable trump display
+		mTrumpDisplay.setToPlayMode();
+		mState.setGamePhase(GameState.Phase.PLAY);
+		redrawAllPlayers();
+
+		// TODO set alone or not
+	}
+	
 	private void setPlayerDisplayEnabled(Player player, boolean enabled) {
-		Player nextUp = getNextPlayer();
+//		Player nextUp = getNextPlayer();
+		
 		for (PlayerDisplay playerDisplay : mPlayerDisplays.values()) {
-			if (playerDisplay.getPlayer() == nextUp) {
+			if (playerDisplay.getPlayer() == player) {
 				playerDisplay.setActive(enabled);
 				break;
 			}

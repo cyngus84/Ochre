@@ -10,6 +10,7 @@ public class Round {
 	public final Player dealer;
 	public Player maker;
 	public int totalPlays;
+	public int trumpPasses;
 	
 	private static final int[] TRUMPS = new int[] {Card.SUIT_CLUBS, Card.SUIT_SPADES, Card.SUIT_DIAMONDS, Card.SUIT_HEARTS};
 	private static int sTrumpOffset = 0;
@@ -22,6 +23,7 @@ public class Round {
 		// trump++;
 		// Log.d("JMATT", "Trump is: " + new Card(TRUMPS[sTrumpOffset], Card.VALUE_ACE).toString());
 		this.dealer = dealer;
+		trumpPasses = 0;
 	}
 	
 	public void addPlay(Play play) {

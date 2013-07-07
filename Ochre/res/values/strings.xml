@@ -4,5 +4,8 @@
     <string name="app_name">Ochre</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-
+    <string name="button_order_up">Order up</string>
+    <string name="button_set_trump">Set trump</string>
+    <string name="button_pass">Pass</string>
+    <string name="alone">I don\'t need my stinkin\' partner</string>
 </resources>

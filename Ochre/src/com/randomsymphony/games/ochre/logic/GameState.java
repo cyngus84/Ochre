@@ -60,7 +60,7 @@ public class GameState extends Fragment {
 	 * @param trump
 	 */
 	public void setTrump(int trump) {
-		mCurrentTrump = mCurrentTrump;
+		mCurrentTrump = trump;
 	}
 	
 	public Round createNewRound(Player dealer) {

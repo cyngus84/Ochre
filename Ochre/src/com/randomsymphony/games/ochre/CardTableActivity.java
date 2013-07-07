@@ -8,6 +8,7 @@ import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
+import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 import com.randomsymphony.games.ochre.R;
 
 import android.os.Bundle;
@@ -26,8 +27,7 @@ public class CardTableActivity extends FragmentActivity {
 	private GameState mGameState;
 	private GameEngine mEngine;
 	private TableDisplay mTableDisplay;
-	private Button[] mPlayedCards = new Button[4];
-	private Button mTrumpCard;
+	private TrumpDisplay mTrumpWidget;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +36,7 @@ public class CardTableActivity extends FragmentActivity {
         initGameState();
         initGameEngine();
         initTableDisplay();
+        initTrump();
         initPlayers();
     }
     
@@ -48,7 +49,15 @@ public class CardTableActivity extends FragmentActivity {
     private void initTableDisplay() {
     	mTableDisplay = TableDisplay.getInstance(4, TAG_GAME_ENGINE, TAG_GAME_STATE);
     	mEngine.setTableDisplay(mTableDisplay);
-    	getSupportFragmentManager().beginTransaction().replace(R.id.table_display, mTableDisplay).commit();
+    	getSupportFragmentManager().beginTransaction().replace(R.id.table_display, mTableDisplay)
+    	        .commit();
+    }
+    
+    private void initTrump() {
+    	mTrumpWidget = TrumpDisplay.getInstance(TAG_GAME_ENGINE);
+    	getSupportFragmentManager().beginTransaction().replace(R.id.trump_controls, mTrumpWidget)
+    	        .commit();
+    	mEngine.setTrumpDisplay(mTrumpWidget);
     }
     
     @Override
