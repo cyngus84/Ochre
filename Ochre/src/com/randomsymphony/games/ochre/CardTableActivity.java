@@ -104,7 +104,7 @@ public class CardTableActivity extends FragmentActivity {
         Player[] players = mGameState.getPlayers();
         for (int count = 0; count < mPlayerWidgets.length; count++) {
         	mPlayerWidgets[count].setPlayer(players[count]);
-        	mPlayerWidgets[count].setActive(true);
+        	mPlayerWidgets[count].setActive(false);
         	mEngine.setPlayerDisplay(count, mPlayerWidgets[count]);
         }
     }

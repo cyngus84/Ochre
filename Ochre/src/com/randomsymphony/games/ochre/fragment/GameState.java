@@ -50,7 +50,9 @@ public class GameState extends Fragment {
 	
 	public Round createNewRound() {
 		mDealerOffset++;
-		return createNewRound(mPlayers[mDealerOffset % mPlayers.length]);
+		Round round = createNewRound(mPlayers[mDealerOffset % mPlayers.length]);
+		round.maker = mPlayers[(mDealerOffset + 1) % mPlayers.length];
+		return round;
 	}
 	
 	public Round getCurrentRound() {

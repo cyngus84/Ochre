@@ -52,7 +52,11 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 	 */
 	public void setPlayer(Player player) {
 		mPlayer = player;
-			redraw();
+		redraw();
+	}
+	
+	public Player getPlayer() {
+		return mPlayer;
 	}
 
 	@Override
@@ -118,23 +122,30 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 			Card[] playerCards = mPlayer.getCurrentCards();
 			for (int ptr = 0; ptr < mCards.length; ptr++) {
 
-				// does this slot contain a card?
-				if (ptr < playerCards.length) {
-					Card target = playerCards[ptr];
+				if (mIsActive) {
 
-					// if there is no card, disable this button, otherwise, set
-					// it to the activation status of this player
-					if (target == null) {
-						mCards[ptr].setClickable(false);
+					// does this slot contain a card?
+					if (ptr < playerCards.length) {
+						Card target = playerCards[ptr];
+
+						// if there is no card, disable this button, otherwise, set
+						// it to the activation status of this player
+						if (target == null) {
+							mCards[ptr].setClickable(false);
+						} else {
+							mCards[ptr].setClickable(true);
+						}
+
+						Card.formatButtonAsCard(mCards[ptr], target, getResources());
 					} else {
-						mCards[ptr].setClickable(mIsActive);
+						mCards[ptr].setClickable(false);
+						mCards[ptr].setBackgroundColor(Color.GREEN);
+						mCards[ptr].setText("");
 					}
-
-					Card.formatButtonAsCard(mCards[ptr], target, getResources());
 				} else {
+					mCards[ptr].setText("*");
+					mCards[ptr].setBackgroundColor(getResources().getColor(R.color.disabled_card));
 					mCards[ptr].setClickable(false);
-					mCards[ptr].setBackgroundColor(Color.GREEN);
-					mCards[ptr].setText("");
 				}
 			}
 		}
