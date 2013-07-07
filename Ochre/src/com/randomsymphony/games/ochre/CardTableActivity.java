@@ -1,13 +1,13 @@
 package com.randomsymphony.games.ochre;
 
-import com.randomsymphony.games.ochre.fragment.GameState;
-import com.randomsymphony.games.ochre.fragment.PlayerDisplay;
-import com.randomsymphony.games.ochre.fragment.TableDisplay;
 import com.randomsymphony.games.ochre.logic.GameEngine;
 import com.randomsymphony.games.ochre.logic.GamePlayUtils;
+import com.randomsymphony.games.ochre.logic.GameState;
 import com.randomsymphony.games.ochre.logic.PlayerFactory;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Player;
+import com.randomsymphony.games.ochre.ui.PlayerDisplay;
+import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.R;
 
 import android.os.Bundle;

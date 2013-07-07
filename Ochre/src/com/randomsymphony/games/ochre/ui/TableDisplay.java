@@ -1,7 +1,8 @@
-package com.randomsymphony.games.ochre.fragment;
+package com.randomsymphony.games.ochre.ui;
 
 import com.randomsymphony.games.ochre.R;
 import com.randomsymphony.games.ochre.logic.GameEngine;
+import com.randomsymphony.games.ochre.logic.GameState;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Player;
 

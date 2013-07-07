@@ -1,4 +1,4 @@
-package com.randomsymphony.games.ochre.fragment;
+package com.randomsymphony.games.ochre.ui;
 
 import com.randomsymphony.games.ochre.R;
 import com.randomsymphony.games.ochre.logic.GameEngine;

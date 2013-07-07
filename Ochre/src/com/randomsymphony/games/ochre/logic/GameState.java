@@ -1,9 +1,7 @@
-package com.randomsymphony.games.ochre.fragment;
+package com.randomsymphony.games.ochre.logic;
 
 import java.util.ArrayList;
 
-import com.randomsymphony.games.ochre.logic.DeckOfCards;
-import com.randomsymphony.games.ochre.logic.PlayerFactory;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Play;
 import com.randomsymphony.games.ochre.model.Player;

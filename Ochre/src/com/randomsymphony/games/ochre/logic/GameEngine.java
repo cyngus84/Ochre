@@ -5,13 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.randomsymphony.games.ochre.CardTableActivity;
-import com.randomsymphony.games.ochre.fragment.GameState;
-import com.randomsymphony.games.ochre.fragment.PlayerDisplay;
-import com.randomsymphony.games.ochre.fragment.TableDisplay;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Play;
 import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.model.Round;
+import com.randomsymphony.games.ochre.ui.PlayerDisplay;
+import com.randomsymphony.games.ochre.ui.TableDisplay;
 
 import android.support.v4.app.Fragment;
 import android.util.Log;
