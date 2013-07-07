@@ -2,6 +2,7 @@ package com.randomsymphony.games.ochre;
 
 import com.randomsymphony.games.ochre.fragment.GameState;
 import com.randomsymphony.games.ochre.fragment.PlayerDisplay;
+import com.randomsymphony.games.ochre.fragment.TableDisplay;
 import com.randomsymphony.games.ochre.logic.GameEngine;
 import com.randomsymphony.games.ochre.logic.GamePlayUtils;
 import com.randomsymphony.games.ochre.logic.PlayerFactory;
@@ -20,9 +21,11 @@ import android.widget.ImageView;
 public class CardTableActivity extends FragmentActivity {
 	
     private static final String TAG_GAME_ENGINE = "com.randomsymphony.games.ochre.GAME_ENGINE";
+    private static final String TAG_GAME_STATE = "com.randomsymphony.games.ochre.GAME_STATE";
 	private PlayerDisplay[] mPlayerWidgets = new PlayerDisplay[4];
 	private GameState mGameState;
 	private GameEngine mEngine;
+	private TableDisplay mTableDisplay;
 	private Button[] mPlayedCards = new Button[4];
 	private Button mTrumpCard;
 	
@@ -30,18 +33,22 @@ public class CardTableActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_card_table);
-        mGameState = new GameState(new PlayerFactory());
+        initGameState();
         initGameEngine();
+        initTableDisplay();
         initPlayers();
-        initPlayedCards();
-        mTrumpCard = (Button) findViewById(R.id.candidate_trump);
-        
-        ((ImageView) findViewById(R.id.table_felt)).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mEngine.startGame();
-			}
-		});
+    }
+    
+    private void initGameState() {
+        mGameState = new GameState(new PlayerFactory());
+        mGameState.setRetainInstance(true);
+        getSupportFragmentManager().beginTransaction().add(mGameState, TAG_GAME_STATE).commit();
+    }
+    
+    private void initTableDisplay() {
+    	mTableDisplay = TableDisplay.getInstance(4, TAG_GAME_ENGINE, TAG_GAME_STATE);
+    	mEngine.setTableDisplay(mTableDisplay);
+    	getSupportFragmentManager().beginTransaction().replace(R.id.table_display, mTableDisplay).commit();
     }
     
     @Override
@@ -51,41 +58,10 @@ public class CardTableActivity extends FragmentActivity {
         return true;
     }
     
-    public void playCard(Card card, Player player) {
-    	Player[] players = mGameState.getPlayers();
-    	for (int ptr = 0; ptr < players.length; ptr++) {
-    		if (players[ptr] == player) {
-    			Button playedCard = mPlayedCards[ptr];
-    			Card.formatButtonAsCard(playedCard, card, getResources());
-				playedCard.setVisibility(View.VISIBLE);
-    			break;
-    		}
-    	}
-    }
-    
-    public void setTrumpCard(Card card) {
-    	Card.formatButtonAsCard(mTrumpCard, card, getResources());
-    	mTrumpCard.setVisibility(View.VISIBLE);
-    }
-    
-    /**
-     * Hide the card displayed on the card table that is the possible trump suit.
-     */
-    public void hideTrump() {
-    	mTrumpCard.setVisibility(View.INVISIBLE);
-    }
-    
-    private void initPlayedCards() {
-    	mPlayedCards[0] = (Button) findViewById(R.id.player0_card);
-    	mPlayedCards[1] = (Button) findViewById(R.id.player1_card);
-    	mPlayedCards[2] = (Button) findViewById(R.id.player2_card);
-    	mPlayedCards[3] = (Button) findViewById(R.id.player3_card);
-    }
-    
     private void initGameEngine() {
     	mEngine = new GameEngine();
+    	// TODO switch GameEngine to looking for the state by a tag
     	mEngine.setGameState(mGameState);
-    	mEngine.setTableDisplay(this);
     	mEngine.setRetainInstance(true);
     	getSupportFragmentManager().beginTransaction().add(mEngine, TAG_GAME_ENGINE).commit();
     }

@@ -7,6 +7,7 @@ import java.util.List;
 import com.randomsymphony.games.ochre.CardTableActivity;
 import com.randomsymphony.games.ochre.fragment.GameState;
 import com.randomsymphony.games.ochre.fragment.PlayerDisplay;
+import com.randomsymphony.games.ochre.fragment.TableDisplay;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Play;
 import com.randomsymphony.games.ochre.model.Player;
@@ -17,7 +18,7 @@ import android.util.Log;
 
 public class GameEngine extends Fragment {
 
-	private CardTableActivity mCardTable;
+	private TableDisplay mCardTable;
 	private HashMap<Integer, PlayerDisplay> mPlayerDisplays = new HashMap<Integer, PlayerDisplay>();
 	private GameState mState;
 	
@@ -25,7 +26,7 @@ public class GameEngine extends Fragment {
 		mPlayerDisplays.put(player, display);
 	}
 	
-	public void setTableDisplay(CardTableActivity activity) {
+	public void setTableDisplay(TableDisplay activity) {
 		mCardTable = activity;
 	}
 	
