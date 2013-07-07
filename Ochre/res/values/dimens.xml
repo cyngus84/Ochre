@@ -7,6 +7,7 @@
 	<dimen name="felt_height">140dp</dimen>
 	<dimen name="margin_card_button">5dp</dimen>
 	<dimen name="card_min_size">54dp</dimen>
+	<dimen name="trump_card_min_size">24dp</dimen>
 	<dimen name="card_padding">2dp</dimen>
 	<dimen name="player_margin">6dp</dimen>
 	<dimen name="player_name_margin">0dp</dimen>

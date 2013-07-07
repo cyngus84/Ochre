@@ -89,11 +89,40 @@ public class TableDisplay extends Fragment {
     	mTrumpCard.setVisibility(View.VISIBLE);
     }
     
+    public void setTrumpSuit(int suit) {
+    	switch (suit) {
+    	    case Card.SUIT_CLUBS:
+    		    mTrumpCard.setText("\u2663");
+    		    break;
+    	    case Card.SUIT_HEARTS:
+    	        mTrumpCard.setText("\u2764");
+    	        break;
+    	    case Card.SUIT_DIAMONDS:
+    	        mTrumpCard.setText("\u2666");
+    	        break;
+    	    case Card.SUIT_SPADES:
+    	        mTrumpCard.setText("\u2660");
+    	        break;
+    	}
+    	
+		if (suit == Card.SUIT_DIAMONDS || suit == Card.SUIT_HEARTS) {
+			mTrumpCard.setBackgroundColor(getResources().getColor(R.color.red_card));
+		} else {
+			mTrumpCard.setBackgroundColor(getResources().getColor(R.color.black_card));
+		}
+    }
+
     /**
      * Hide the card displayed on the card table that is the possible trump suit.
      */
     public void hideTrump() {
     	mTrumpCard.setVisibility(View.INVISIBLE);
+    }
+    
+    public void clearPlayedCards() {
+    	for (int ptr = 0; ptr < mPlayedCards.length; ptr++) {
+    		mPlayedCards[ptr].setVisibility(View.INVISIBLE);
+    	}
     }
 	
     private void initPlayedCards() {

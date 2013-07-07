@@ -14,7 +14,7 @@
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
 	    android:layout_centerInParent="true"
-	    style="@style/CardButton.PlayedCard" />
+	    style="@style/CardButton.TrumpCard" />
 	<Button
 	    android:id="@+id/player0_card"
 	    android:layout_alignLeft="@id/table_felt"

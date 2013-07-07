@@ -81,6 +81,7 @@ public class GameEngine extends Fragment implements StateListener {
 		setPlayerDisplayEnabled(getNextPlayer(), true);
 		
 		mTrumpDisplay.setToOrderUpMode();
+		mCardTable.clearPlayedCards();
 	}
 	
 	public void playCard(Player player, Card card) {
@@ -91,6 +92,11 @@ public class GameEngine extends Fragment implements StateListener {
 		player.discardCard(card);
 		// this is wasteful, would be better to just redraw one player
 		redrawAllPlayers();
+		
+		if (currRound.totalPlays % currRound.getActivePlayers() == 1) {
+			mCardTable.clearPlayedCards();
+		}
+		
 		mCardTable.playCard(card, player);
 		
 		//oops, need to add the card first. this logic is a little wrong
@@ -116,6 +122,7 @@ public class GameEngine extends Fragment implements StateListener {
 		}
 		
 		setPlayerDisplayEnabled(getNextPlayer(), true);
+		
 	}
 	
 	/**
@@ -203,7 +210,7 @@ public class GameEngine extends Fragment implements StateListener {
 		mTrumpDisplay.setToPlayMode();
 		mState.setGamePhase(GameState.Phase.PLAY);
 		redrawAllPlayers();
-		mCardTable.hideTrump();
+		mCardTable.setTrumpSuit(currentRound.trump);
 
 		// TODO set alone or not
 	}

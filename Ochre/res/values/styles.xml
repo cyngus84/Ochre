@@ -32,6 +32,12 @@
         <item name="android:visibility">invisible</item>
     </style>
     
+    <style name="CardButton.TrumpCard">
+        <item name="android:minWidth">@dimen/trump_card_min_size</item>
+        <item name="android:minHeight">@dimen/trump_card_min_size</item>
+        <item name="android:visibility">invisible</item>
+    </style>
+    
     <color name="red_card">#FFFF4444</color>
     <color name="black_card">#FF999999</color>
     <color name="disabled_card">#FF000000</color>
