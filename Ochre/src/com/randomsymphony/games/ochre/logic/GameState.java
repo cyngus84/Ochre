@@ -40,6 +40,7 @@ public class GameState extends Fragment {
 	private ArrayList<Round> mRounds = new ArrayList<Round>();
 	private int mDealerOffset = -1;
 	private Phase mGamePhase = Phase.NONE;
+	private StateListener mStateListener;
 	
 	public GameState(PlayerFactory playerFactory) {
 		mPlayerSource = playerFactory;
@@ -87,10 +88,17 @@ public class GameState extends Fragment {
 		return mGamePhase;
 	}
 
-	public void setGamePhase(Phase mGamePhase) {
-		this.mGamePhase = mGamePhase;
+	public void setGamePhase(Phase gamePhase) {
+		mGamePhase = gamePhase;
+		if (mStateListener != null) {
+			mStateListener.onStateChange(mGamePhase);
+		}
 	}
-
+	
+	public void setPhaseListener(StateListener listener) {
+		mStateListener = listener;
+	}
+	
 	private void initPlayers() {
 		for (int count = 0; count < mPlayers.length; count++) {
 			mPlayers[count] = mPlayerSource.createPlayer();

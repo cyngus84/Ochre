@@ -1,11 +1,9 @@
 package com.randomsymphony.games.ochre.logic;
 
-import java.security.spec.MGF1ParameterSpec;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import com.randomsymphony.games.ochre.CardTableActivity;
+import com.randomsymphony.games.ochre.logic.GameState.Phase;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Play;
 import com.randomsymphony.games.ochre.model.Player;
@@ -17,10 +15,10 @@ import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 
-public class GameEngine extends Fragment {
+public class GameEngine extends Fragment implements StateListener {
 
 	public static final int NUMBER_OF_TRICKS = 5;
-
+	
 	private TableDisplay mCardTable;
 	/**
 	 * Did I want this to map from view id to playerdisplay?
@@ -28,6 +26,15 @@ public class GameEngine extends Fragment {
 	private HashMap<Integer, PlayerDisplay> mPlayerDisplays = new HashMap<Integer, PlayerDisplay>();
 	private GameState mState;
 	private TrumpDisplay mTrumpDisplay;
+	private ArrayList<StateListener> mStateListeners = new ArrayList<StateListener>();
+
+	public void registerStateListener(StateListener listener) {
+		mStateListeners.add(listener);
+	}
+	
+	public void unregisterStateListener(StateListener listener) {
+		mStateListeners.remove(listener);
+	}
 	
 	public void setPlayerDisplay(int player, PlayerDisplay display) {
 		mPlayerDisplays.put(player, display);
@@ -39,6 +46,7 @@ public class GameEngine extends Fragment {
 	
 	public void setGameState(GameState state) {
 		mState = state;
+		mState.setPhaseListener(this);
 	}
 	
 	public void setTrumpDisplay(TrumpDisplay display) {
@@ -183,8 +191,8 @@ public class GameEngine extends Fragment {
 			setPlayerDisplayEnabled(currentPlayer, false);
 			setPlayerDisplayEnabled(roundStarter, true);
 		} else {
-			// trump set by player
-			throw new RuntimeException("Not supported yet.");
+			currentRound.trump = getPlayerDisplay(currentPlayer).getSelectedCard().getSuit();
+			Log.d("JMATT", "trump is " + getPlayerDisplay(currentPlayer).getSelectedCard().toString());
 		}
 		
 		// set maker
@@ -195,19 +203,23 @@ public class GameEngine extends Fragment {
 		mTrumpDisplay.setToPlayMode();
 		mState.setGamePhase(GameState.Phase.PLAY);
 		redrawAllPlayers();
+		mCardTable.hideTrump();
 
 		// TODO set alone or not
 	}
 	
-	private void setPlayerDisplayEnabled(Player player, boolean enabled) {
-//		Player nextUp = getNextPlayer();
-		
+	private PlayerDisplay getPlayerDisplay(Player forPlayer) {
 		for (PlayerDisplay playerDisplay : mPlayerDisplays.values()) {
-			if (playerDisplay.getPlayer() == player) {
-				playerDisplay.setActive(enabled);
-				break;
+			if (playerDisplay.getPlayer() == forPlayer) {
+				return playerDisplay;
 			}
 		}
+		
+		throw new RuntimeException("We shouldn't have gotten here.");
+	}
+	
+	private void setPlayerDisplayEnabled(Player player, boolean enabled) {
+		getPlayerDisplay(player).setActive(enabled);
 	}
 	
 	private Player getNextPlayer() {
@@ -285,6 +297,13 @@ public class GameEngine extends Fragment {
 		for (PlayerDisplay display : mPlayerDisplays.values()) {
 			// this is wasteful, would be better to just redraw one player
 			display.redraw();
+		}
+	}
+
+	@Override
+	public void onStateChange(Phase newPhase) {
+		for (int ptr = 0, limit = mStateListeners.size(); ptr < limit; ptr++) {
+			mStateListeners.get(ptr).onStateChange(newPhase);
 		}
 	}
 }

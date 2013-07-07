@@ -1,7 +1,12 @@
 package com.randomsymphony.games.ochre.ui;
 
+import java.util.ArrayList;
+
 import com.randomsymphony.games.ochre.R;
 import com.randomsymphony.games.ochre.logic.GameEngine;
+import com.randomsymphony.games.ochre.logic.GameState;
+import com.randomsymphony.games.ochre.logic.GameState.Phase;
+import com.randomsymphony.games.ochre.logic.StateListener;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Player;
 
@@ -13,9 +18,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
-public class PlayerDisplay extends Fragment implements View.OnClickListener {
+public class PlayerDisplay extends Fragment implements View.OnClickListener, StateListener {
 
 	private static final String KEY_GAME_ENGINE_TAG = "game_engine";
 	private static final int DISCARD_SLOT = 5;
@@ -35,16 +41,18 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 	private boolean mIsActive = false;
 	private boolean mExtraCardVisible = false;
 	private View mContent;
+	private RadioButton[] mCardSelectors = new RadioButton[5];
 
 	public PlayerDisplay() {
 		
 	}
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mGameEngine = (GameEngine) getActivity().getSupportFragmentManager()
 				.findFragmentByTag(getArguments().getString(KEY_GAME_ENGINE_TAG));
+		mGameEngine.registerStateListener(this);
 	}
 	
 	/**
@@ -94,6 +102,16 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 		
 		for (int ptr = 0; ptr < mCards.length; ptr++) {
 			mCards[ptr].setOnClickListener(this);
+		}
+		
+		mCardSelectors[0] = (RadioButton) content.findViewById(R.id.cardSelect1);
+		mCardSelectors[1] = (RadioButton) content.findViewById(R.id.cardSelect2);
+		mCardSelectors[2] = (RadioButton) content.findViewById(R.id.cardSelect3);
+		mCardSelectors[3] = (RadioButton) content.findViewById(R.id.cardSelect4);
+		mCardSelectors[4] = (RadioButton) content.findViewById(R.id.cardSelect5);
+		
+		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
+			mCardSelectors[ptr].setOnClickListener(this);
 		}
 	}
 	
@@ -153,7 +171,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 		}
 		
 		// set visibility of extra card
-		mCards[DISCARD_SLOT].setVisibility(View.VISIBLE);
+		mCards[DISCARD_SLOT].setVisibility(View.INVISIBLE);
 
 		// set label of player
 		mPlayerLabel.setText("Hi, I'm " + (mPlayer != null ? mPlayer.getName() : "EMPTY") + "\n" + cardList);
@@ -186,6 +204,50 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 		    case R.id.extra_card:
 		    	cardClicked(DISCARD_SLOT);
 			    break;
+		    case R.id.cardSelect1:
+		    case R.id.cardSelect2:
+		    case R.id.cardSelect3:
+		    case R.id.cardSelect4:
+		    case R.id.cardSelect5:
+		    	uncheckOtherRadios(v.getId());
+		    	break;
 		}
+	}
+	
+	private void uncheckOtherRadios(int selectedId) {
+		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
+			if (mCardSelectors[ptr].getId() != selectedId) {
+				mCardSelectors[ptr].setChecked(false);
+			}
+		}
+	}
+
+	private void setRadioVisibility(boolean present) {
+		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
+			mCardSelectors[ptr].setVisibility(present ? View.VISIBLE : View.GONE);
+		}
+	}
+	
+	@Override
+	public void onStateChange(Phase newPhase) {
+		switch (newPhase) {
+		    case PICK_TRUMP:
+			   setRadioVisibility(true);
+			   break;
+		    case NONE:
+		    case ORDER_UP:
+		    case PLAY:
+		    	setRadioVisibility(false);
+		    	break;
+		}
+	}
+	
+	public Card getSelectedCard() {
+		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
+			if (mCardSelectors[ptr].isChecked()) {
+				return mPlayer.getCurrentCards()[ptr];
+			}
+		}
+		return null;
 	}
 }
