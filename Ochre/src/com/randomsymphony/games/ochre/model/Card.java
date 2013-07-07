@@ -1,5 +1,10 @@
 package com.randomsymphony.games.ochre.model;
 
+import com.randomsymphony.games.ochre.R;
+
+import android.content.res.Resources;
+import android.widget.Button;
+
 public class Card {
 
 	public static final int SUIT_HEARTS = 0;
@@ -121,5 +126,14 @@ public class Card {
 		if (mValue != other.mValue)
 			return false;
 		return true;
+	}
+	
+	public static void formatButtonAsCard(Button button, Card card, Resources res) {
+		button.setText(card.toString());
+		if (card.getSuit() == Card.SUIT_DIAMONDS || card.getSuit() == Card.SUIT_HEARTS) {
+			button.setBackgroundColor(res.getColor(R.color.red_card));
+		} else {
+			button.setBackgroundColor(res.getColor(R.color.black_card));
+		}
 	}
 }

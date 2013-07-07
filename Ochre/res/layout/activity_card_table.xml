@@ -16,6 +16,12 @@
 	    android:layout_centerVertical="true"
 	    android:src="@drawable/felt" />
 	<Button
+	    android:id="@+id/candidate_trump"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_centerInParent="true"
+	    style="@style/CardButton.PlayedCard" />
+	<Button
 	    android:id="@+id/player0_card"
 	    android:layout_alignLeft="@id/table_felt"
 	    android:layout_width="wrap_content"

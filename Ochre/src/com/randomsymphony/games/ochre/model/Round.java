@@ -18,9 +18,9 @@ public class Round {
 		totalPlays = 0;
 		tricks = new ArrayList<Play[]>();
 		alone = false;
-		trump = TRUMPS[sTrumpOffset % TRUMPS.length];
-		trump++;
-		Log.d("JMATT", "Trump is: " + new Card(TRUMPS[sTrumpOffset], Card.VALUE_ACE).toString());
+		// trump = TRUMPS[sTrumpOffset % TRUMPS.length];
+		// trump++;
+		// Log.d("JMATT", "Trump is: " + new Card(TRUMPS[sTrumpOffset], Card.VALUE_ACE).toString());
 		this.dealer = dealer;
 	}
 	

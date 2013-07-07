@@ -24,6 +24,7 @@ public class CardTableActivity extends FragmentActivity {
 	private GameState mGameState;
 	private GameEngine mEngine;
 	private Button[] mPlayedCards = new Button[4];
+	private Button mTrumpCard;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +34,7 @@ public class CardTableActivity extends FragmentActivity {
         initGameEngine();
         initPlayers();
         initPlayedCards();
+        mTrumpCard = (Button) findViewById(R.id.candidate_trump);
         
         ((ImageView) findViewById(R.id.table_felt)).setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -54,18 +56,23 @@ public class CardTableActivity extends FragmentActivity {
     	for (int ptr = 0; ptr < players.length; ptr++) {
     		if (players[ptr] == player) {
     			Button playedCard = mPlayedCards[ptr];
-    			playedCard.setText(card.toString());
-				if (card.getSuit() == Card.SUIT_DIAMONDS ||
-						card.getSuit() == Card.SUIT_HEARTS) {
-					playedCard.setBackgroundResource(R.color.red_card);
-				} else {
-					playedCard.setBackgroundResource(R.color.black_card);
-				}
-				
+    			Card.formatButtonAsCard(playedCard, card, getResources());
 				playedCard.setVisibility(View.VISIBLE);
     			break;
     		}
     	}
+    }
+    
+    public void setTrumpCard(Card card) {
+    	Card.formatButtonAsCard(mTrumpCard, card, getResources());
+    	mTrumpCard.setVisibility(View.VISIBLE);
+    }
+    
+    /**
+     * Hide the card displayed on the card table that is the possible trump suit.
+     */
+    public void hideTrump() {
+    	mTrumpCard.setVisibility(View.INVISIBLE);
     }
     
     private void initPlayedCards() {

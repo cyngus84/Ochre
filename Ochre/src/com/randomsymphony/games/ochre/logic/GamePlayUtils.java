@@ -18,7 +18,6 @@ public class GamePlayUtils {
 	
 	public static void dealToPlayer(DeckOfCards cards, Player player) {
 		int numCards = player.getCurrentCards().length;
-		Log.d("JMATT", "Player " + player.getName() + " has " + numCards + " cards");
 		Card[] newCards;
 		if (numCards == 0) {
 			// no cards dealt yet

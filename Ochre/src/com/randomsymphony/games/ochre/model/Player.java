@@ -29,7 +29,6 @@ public class Player {
 		for (int ptr = 0, limit = mCards.size(); ptr < limit; ptr++) {
 			cards[ptr] = mCards.get(ptr);
 		}
-		Log.d("JMATT", mName + " has " + cards.length + " cards");
 		return cards;
 	}
 	

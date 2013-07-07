@@ -50,12 +50,19 @@ public class GameEngine extends Fragment {
     	
         GamePlayUtils.dealHand(mState.getDeck(), mState.getPlayers());
         
+        // deal the possible trump card
+        Card possibleTrump = mState.getDeck().deal(1)[0];
+        mCardTable.setTrumpCard(possibleTrump);
+        
         redrawAllPlayers();
 		
 		Round newRound = mState.createNewRound();
 		// TODO this should really only be set after we know if a player
 		// is going alone or not.
 		newRound.tricks.add(new Play[4]);
+		
+		// speculatively set the trump
+		newRound.trump = possibleTrump.getSuit();
 	}
 	
 	public static final int NUMBER_OF_TRICKS = 5;

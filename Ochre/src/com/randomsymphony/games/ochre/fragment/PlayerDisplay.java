@@ -120,7 +120,6 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 
 				// does this slot contain a card?
 				if (ptr < playerCards.length) {
-					Log.d("JMATT", "Card " + ptr + " is present");
 					Card target = playerCards[ptr];
 
 					// if there is no card, disable this button, otherwise, set
@@ -131,15 +130,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener {
 						mCards[ptr].setClickable(mIsActive);
 					}
 
-					mCards[ptr].setText(target.toString());
-					if (target.getSuit() == Card.SUIT_DIAMONDS ||
-							target.getSuit() == Card.SUIT_HEARTS) {
-						mCards[ptr].setBackgroundColor(getResources().getColor(R.color.red_card));
-					} else {
-						mCards[ptr].setBackgroundColor(getResources().getColor(R.color.black_card));
-					}
+					Card.formatButtonAsCard(mCards[ptr], target, getResources());
 				} else {
-					Log.d("JMATT", "Card " + ptr + " NOT present");
 					mCards[ptr].setClickable(false);
 					mCards[ptr].setBackgroundColor(Color.GREEN);
 					mCards[ptr].setText("");
