@@ -214,6 +214,8 @@ public class GameEngine extends Fragment implements StateListener {
 			currentRound.trump = getPlayerDisplay(currentPlayer).getSelectedCard();
 			Log.d("JMATT", "trump is " + getPlayerDisplay(currentPlayer).getSelectedCard().toString());
 			mState.setGamePhase(GameState.Phase.PLAY);
+			setPlayerDisplayEnabled(currentPlayer, false);
+			startRound();
 		}
 		
 		// set maker
@@ -233,13 +235,18 @@ public class GameEngine extends Fragment implements StateListener {
 	
 	public void discardCard(Card card) {
 		Round currentRound = mState.getCurrentRound();
-		Player roundStarter = getNthPlayerInTrick(currentRound.dealer, 1, currentRound);
 		currentRound.dealer.removeCard(card);
 		PlayerDisplay dealer = getPlayerDisplay(currentRound.dealer);
 		dealer.hideDiscardCard();
 		dealer.redraw();
 		
 		setPlayerDisplayEnabled(currentRound.dealer, false);
+		startRound();
+	}
+	
+	private void startRound() {
+		Round currentRound = mState.getCurrentRound();
+		Player roundStarter = getNthPlayerInTrick(currentRound.dealer, 1, currentRound);
 		setPlayerDisplayEnabled(roundStarter, true);
 		mState.setGamePhase(GameState.Phase.PLAY);
 	}
