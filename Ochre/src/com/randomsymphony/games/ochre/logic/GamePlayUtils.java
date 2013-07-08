@@ -40,11 +40,7 @@ public class GamePlayUtils {
 	}
 	
 	public static boolean isTrump(int trump, Card card) {
-		return card.getSuit() == trump ||
-				(trump == Card.SUIT_DIAMONDS && card.getSuit() == Card.SUIT_HEARTS) ||
-				(trump == Card.SUIT_HEARTS && card.getSuit() == Card.SUIT_DIAMONDS) ||
-				(trump == Card.SUIT_CLUBS && card.getSuit() == Card.SUIT_SPADES) ||
-				(trump == Card.SUIT_SPADES && card.getSuit() == Card.SUIT_CLUBS);
+		return card.getSuit() == trump || isLeftBauer(trump, card);
 	}
 	
 	public static boolean isRightBauer(int trump, Card card) {
