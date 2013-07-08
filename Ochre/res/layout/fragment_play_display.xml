@@ -101,5 +101,21 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@id/cardSelect1" />
-
+    
+    <RadioButton
+        android:id="@+id/extra_card_select"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@id/extra_card"
+        android:visibility="gone"
+        android:layout_below="@id/extra_card" />
+    
+    <Button
+        android:id="@+id/discard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/extra_card"
+        android:layout_below="@id/cardSelect1"
+        android:visibility="gone"
+        android:text="@string/discard" />
 </RelativeLayout>

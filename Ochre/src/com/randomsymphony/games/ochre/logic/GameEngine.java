@@ -75,7 +75,7 @@ public class GameEngine extends Fragment implements StateListener {
 		Round newRound = mState.createNewRound();
 		
 		// speculatively set the trump
-		newRound.trump = possibleTrump.getSuit();
+		newRound.trump = possibleTrump;
 		mState.setGamePhase(GameState.Phase.ORDER_UP);
 		
 		setPlayerDisplayEnabled(getNextPlayer(), true);
@@ -103,7 +103,8 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		if (mState.getCurrentRound().totalPlays > 0 && 
 				mState.getCurrentRound().isCurrentTrickComplete()) {
-			Play winningPlay = scoreTrick(currRound.getLastCompletedTrick(), currRound.trump);
+			Play winningPlay = scoreTrick(currRound.getLastCompletedTrick(),
+					currRound.trump.getSuit());
 			Log.d("JMATT", "And the winner is: " + winningPlay.card.toString());
 
 			if (currRound.totalPlays == currRound.getActivePlayers() * NUMBER_OF_TRICKS) {
@@ -192,13 +193,21 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		// set trump
 		if (mState.getGamePhase() == GameState.Phase.ORDER_UP) {
+			// disable display of order-er
+			setPlayerDisplayEnabled(currentPlayer, false);
+			
+			// enable display of dealer to pick a discard card
+			currentRound.dealer.addCard(currentRound.trump);
+			PlayerDisplay display = getPlayerDisplay(currentRound.dealer);
+			display.showDiscardCard();
+			setPlayerDisplayEnabled(currentRound.dealer, true);
 			// trump set as the extra card
 			// nothing to do really, but activate the right player, trump for
 			// the round was set speculatively in newRound()
-			setPlayerDisplayEnabled(currentPlayer, false);
-			setPlayerDisplayEnabled(roundStarter, true);
+//			setPlayerDisplayEnabled(currentPlayer, false);
+//			setPlayerDisplayEnabled(roundStarter, true);
 		} else {
-			currentRound.trump = getPlayerDisplay(currentPlayer).getSelectedCard().getSuit();
+			currentRound.trump = getPlayerDisplay(currentPlayer).getSelectedCard();
 			Log.d("JMATT", "trump is " + getPlayerDisplay(currentPlayer).getSelectedCard().toString());
 		}
 		
@@ -208,11 +217,25 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		// disable trump display
 		mTrumpDisplay.setToPlayMode();
-		mState.setGamePhase(GameState.Phase.PLAY);
+		
+		// TODO move this mode change to wherever we come to after the dealer discards
+		//mState.setGamePhase(GameState.Phase.PLAY);
 		redrawAllPlayers();
-		mCardTable.setTrumpSuit(currentRound.trump);
+		mCardTable.setTrumpSuit(currentRound.trump.getSuit());
 
 		// TODO set alone or not
+	}
+	
+	public void discardCard(Card card) {
+		Round currentRound = mState.getCurrentRound();
+		Player roundStarter = getNthPlayerInTrick(currentRound.dealer, 1, currentRound);
+		currentRound.dealer.removeCard(card);
+		PlayerDisplay dealer = getPlayerDisplay(currentRound.dealer);
+		dealer.hideDiscardCard();
+		dealer.redraw();
+		
+		setPlayerDisplayEnabled(currentRound.dealer, false);
+		setPlayerDisplayEnabled(roundStarter, true);
 	}
 	
 	private PlayerDisplay getPlayerDisplay(Player forPlayer) {
@@ -238,7 +261,7 @@ public class GameEngine extends Fragment implements StateListener {
 		if (currentRound.isCurrentTrickComplete()) {
 			// the next player is the winner of the last trick
 			return scoreTrick(currentRound.getLastCompletedTrick(),
-					mState.getCurrentRound().trump).player;
+					mState.getCurrentRound().trump.getSuit()).player;
 		} else {
 			// next player is the winner of the previous trick, plus number of
 			// plays in this one
@@ -248,7 +271,7 @@ public class GameEngine extends Fragment implements StateListener {
 						currentRound);
 			} else {
 				Play lastTrickWinner = scoreTrick(currentRound.getLastCompletedTrick(),
-						currentRound.trump);
+						currentRound.trump.getSuit());
 				return getNthPlayerInTrick(lastTrickWinner.player, 
 						currentRound.totalPlays % currentRound.getActivePlayers(), currentRound);
 			}

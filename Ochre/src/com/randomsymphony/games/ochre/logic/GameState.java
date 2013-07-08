@@ -23,6 +23,8 @@ public class GameState extends Fragment {
 		 * any suit but the dealt trump as trump
 		 */
 		PICK_TRUMP,
+		
+		DEALER_DISCARD,
 		/**
 		 * Players are just playing tricks normally.
 		 */
@@ -36,7 +38,7 @@ public class GameState extends Fragment {
 	private Player[] mPlayers = new Player[4];
 	private PlayerFactory mPlayerSource;
 	private DeckOfCards mDeck;
-	private int mCurrentTrump;
+	private Card mCurrentTrump;
 	private ArrayList<Round> mRounds = new ArrayList<Round>();
 	private int mDealerOffset = -1;
 	private Phase mGamePhase = Phase.NONE;
@@ -54,14 +56,6 @@ public class GameState extends Fragment {
 	
 	public DeckOfCards getDeck() {
 		return mDeck;
-	}
-	
-	/**
-	 * Should be one of the suit constants from {@link Card}.
-	 * @param trump
-	 */
-	public void setTrump(int trump) {
-		mCurrentTrump = trump;
 	}
 	
 	public Round createNewRound(Player dealer) {

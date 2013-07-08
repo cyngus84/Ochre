@@ -4,7 +4,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 public class Round {
-	public int trump;
+	public Card trump;
 	public ArrayList<Play[]> tricks;
 	public boolean alone;
 	public final Player dealer;

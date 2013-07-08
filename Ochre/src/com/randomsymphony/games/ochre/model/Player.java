@@ -33,7 +33,7 @@ public class Player {
 	}
 	
 	public void removeCard(Card card) {
-		throw new RuntimeException();
+		mCards.remove(card);
 	}
 	
 	public void addCard(Card card) {

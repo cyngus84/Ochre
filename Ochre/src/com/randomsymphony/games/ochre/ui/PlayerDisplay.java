@@ -42,6 +42,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private boolean mExtraCardVisible = false;
 	private View mContent;
 	private RadioButton[] mCardSelectors = new RadioButton[5];
+	private RadioButton mExtraCardSelector;
+	private Button mDiscard;
 
 	public PlayerDisplay() {
 		
@@ -113,6 +115,12 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
 			mCardSelectors[ptr].setOnClickListener(this);
 		}
+		
+		mExtraCardSelector = (RadioButton) content.findViewById(R.id.extra_card_select);
+		mExtraCardSelector.setOnClickListener(this);
+		
+		mDiscard = (Button) mContent.findViewById(R.id.discard);
+		mDiscard.setOnClickListener(this);
 	}
 	
 	/**
@@ -156,9 +164,14 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 
 						Card.formatButtonAsCard(mCards[ptr], target, getResources());
 					} else {
-						mCards[ptr].setClickable(false);
-						mCards[ptr].setBackgroundColor(Color.GREEN);
-						mCards[ptr].setText("");
+						if (ptr < 6) {
+							mCards[ptr].setClickable(false);
+							mCards[ptr].setBackgroundColor(Color.GREEN);
+							mCards[ptr].setText("");
+						} else {
+							mCards[ptr].setVisibility(View.GONE);
+							mExtraCardSelector.setVisibility(View.GONE);
+						}
 					}
 				} else {
 					mCards[ptr].setText("*");
@@ -171,11 +184,10 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		}
 		
 		// set visibility of extra card
-		mCards[DISCARD_SLOT].setVisibility(View.INVISIBLE);
+		mCards[DISCARD_SLOT].setVisibility(mExtraCardVisible ? View.VISIBLE : View.INVISIBLE);
 
 		// set label of player
 		mPlayerLabel.setText("Hi, I'm " + (mPlayer != null ? mPlayer.getName() : "EMPTY") + "\n" + cardList);
-		mContent.invalidate();
 		
 	}
 
@@ -209,8 +221,36 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		    case R.id.cardSelect3:
 		    case R.id.cardSelect4:
 		    case R.id.cardSelect5:
+		    case R.id.extra_card_select:
 		    	uncheckOtherRadios(v.getId());
+				mDiscard.setEnabled(true);
 		    	break;
+		    case R.id.discard:
+		    	discard();
+		}
+	}
+	
+	private void discard() {
+		// find the selected card
+		int offset = -1;
+		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
+			if (mCardSelectors[ptr].isChecked()) {
+				offset = ptr;
+				break;
+			}
+		}
+		
+		Card[] currentCards = mPlayer.getCurrentCards();
+		
+		if (offset == -1) {
+			if (mExtraCardSelector.isChecked()) {
+				// TODO its dangerous to assume the extra card is here, fix
+				mGameEngine.discardCard(currentCards[currentCards.length - 1]);
+			} else {
+				throw new RuntimeException("Nothing selected!");
+			}
+		} else {
+			mGameEngine.discardCard(mPlayer.getCurrentCards()[offset]);
 		}
 	}
 	
@@ -220,12 +260,17 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 				mCardSelectors[ptr].setChecked(false);
 			}
 		}
+		
+		if (mExtraCardSelector.getId() != selectedId) {
+			mExtraCardSelector.setChecked(false);
+		}
 	}
 
 	private void setRadioVisibility(boolean present) {
 		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
 			mCardSelectors[ptr].setVisibility(present ? View.VISIBLE : View.GONE);
 		}
+		mExtraCardSelector.setVisibility(mExtraCardVisible ? View.VISIBLE : View.GONE);
 	}
 	
 	@Override
@@ -237,10 +282,12 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		    case NONE:
 		    case ORDER_UP:
 		    case PLAY:
+		    default:
 		    	setRadioVisibility(false);
 		    	break;
 		}
 	}
+	
 	
 	public Card getSelectedCard() {
 		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
@@ -249,5 +296,20 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 			}
 		}
 		return null;
+	}
+	
+	public void showDiscardCard() {
+		setExtraCardVisibility(true);
+		setRadioVisibility(true);
+		mDiscard.setVisibility(View.VISIBLE);
+		mDiscard.setEnabled(false);
+	}
+	
+	public void hideDiscardCard() {
+		setRadioVisibility(false);
+		mExtraCardVisible = false;
+		mDiscard.setVisibility(View.GONE);
+		mExtraCardSelector.setVisibility(View.GONE);
+		redraw();
 	}
 }

@@ -8,4 +8,5 @@
     <string name="button_set_trump">Set trump</string>
     <string name="button_pass">Pass</string>
     <string name="alone">I don\'t need my stinkin\' partner</string>
+    <string name="discard">Discard</string>
 </resources>
