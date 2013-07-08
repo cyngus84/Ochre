@@ -154,12 +154,12 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 					if (ptr < playerCards.length) {
 						Card target = playerCards[ptr];
 
-						// if there is no card, disable this button, otherwise, set
-						// it to the activation status of this player
-						if (target == null) {
-							mCards[ptr].setClickable(false);
-						} else {
+						// if there is no card and we're active, its only
+						// clickable in play mode
+						if (mPhase == GameState.Phase.PLAY) {
 							mCards[ptr].setClickable(true);
+						} else {
+							mCards[ptr].setClickable(false);
 						}
 
 						Card.formatButtonAsCard(mCards[ptr], target, getResources());
@@ -182,6 +182,19 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		} else {
 			throw new RuntimeException();
 		}
+		
+		// only show the card selectors if we're active and radios are set to
+		// present
+		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
+			mCardSelectors[ptr].setVisibility(mRadiosPresent && mIsActive ? View.VISIBLE : View.GONE);
+		}
+		
+		// only show the extra card selector if we're active and its set to visible
+		mExtraCardSelector.setVisibility(mExtraCardVisible && mIsActive ? View.VISIBLE : View.GONE);
+		
+		// only show discard button if we're active and the extra card is visible
+		// let other factors control its enablement
+		mDiscard.setVisibility(mExtraCardVisible && mIsActive ? View.VISIBLE : View.GONE);
 		
 		// set visibility of extra card
 		mCards[DISCARD_SLOT].setVisibility(mExtraCardVisible ? View.VISIBLE : View.INVISIBLE);
@@ -266,15 +279,18 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		}
 	}
 
+	private boolean mRadiosPresent = false;
+	
 	private void setRadioVisibility(boolean present) {
-		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
-			mCardSelectors[ptr].setVisibility(present ? View.VISIBLE : View.GONE);
-		}
-		mExtraCardSelector.setVisibility(mExtraCardVisible ? View.VISIBLE : View.GONE);
+		mRadiosPresent = present;
 	}
+	
+	private GameState.Phase mPhase = GameState.Phase.NONE;
 	
 	@Override
 	public void onStateChange(Phase newPhase) {
+		mPhase = newPhase;
+		
 		switch (newPhase) {
 		    case PICK_TRUMP:
 			   setRadioVisibility(true);
@@ -286,6 +302,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		    	setRadioVisibility(false);
 		    	break;
 		}
+		redraw();
 	}
 	
 	
@@ -301,15 +318,13 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	public void showDiscardCard() {
 		setExtraCardVisibility(true);
 		setRadioVisibility(true);
-		mDiscard.setVisibility(View.VISIBLE);
+		redraw();
 		mDiscard.setEnabled(false);
 	}
 	
 	public void hideDiscardCard() {
 		setRadioVisibility(false);
 		mExtraCardVisible = false;
-		mDiscard.setVisibility(View.GONE);
-		mExtraCardSelector.setVisibility(View.GONE);
 		redraw();
 	}
 }

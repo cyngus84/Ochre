@@ -201,14 +201,10 @@ public class GameEngine extends Fragment implements StateListener {
 			PlayerDisplay display = getPlayerDisplay(currentRound.dealer);
 			display.showDiscardCard();
 			setPlayerDisplayEnabled(currentRound.dealer, true);
-			// trump set as the extra card
-			// nothing to do really, but activate the right player, trump for
-			// the round was set speculatively in newRound()
-//			setPlayerDisplayEnabled(currentPlayer, false);
-//			setPlayerDisplayEnabled(roundStarter, true);
 		} else {
 			currentRound.trump = getPlayerDisplay(currentPlayer).getSelectedCard();
 			Log.d("JMATT", "trump is " + getPlayerDisplay(currentPlayer).getSelectedCard().toString());
+			mState.setGamePhase(GameState.Phase.PLAY);
 		}
 		
 		// set maker
@@ -219,7 +215,7 @@ public class GameEngine extends Fragment implements StateListener {
 		mTrumpDisplay.setToPlayMode();
 		
 		// TODO move this mode change to wherever we come to after the dealer discards
-		//mState.setGamePhase(GameState.Phase.PLAY);
+		//
 		redrawAllPlayers();
 		mCardTable.setTrumpSuit(currentRound.trump.getSuit());
 
@@ -236,6 +232,7 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		setPlayerDisplayEnabled(currentRound.dealer, false);
 		setPlayerDisplayEnabled(roundStarter, true);
+		mState.setGamePhase(GameState.Phase.PLAY);
 	}
 	
 	private PlayerDisplay getPlayerDisplay(Player forPlayer) {
