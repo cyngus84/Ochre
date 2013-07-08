@@ -16,6 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/checkBox1"
+        android:enabled="false"
         android:text="@string/button_order_up" />
 
     <Button
@@ -25,6 +26,7 @@
         android:layout_alignBaseline="@+id/set_trump"
         android:layout_alignBottom="@+id/set_trump"
         android:layout_marginLeft="16dp"
+        android:enabled="false"
         android:layout_toRightOf="@+id/set_trump"
         android:text="@string/button_pass" />
 

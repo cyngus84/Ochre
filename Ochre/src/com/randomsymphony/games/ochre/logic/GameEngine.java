@@ -126,6 +126,15 @@ public class GameEngine extends Fragment implements StateListener {
 		
 	}
 	
+	public void setCurrentCandidateTrump(Card card) {
+		// do nothing unless we're in "pick trump" phase
+		if (mState.getGamePhase() != GameState.Phase.PICK_TRUMP) {
+			return;
+		}
+		// card is ignored for now
+		mTrumpDisplay.enableSetTrump();
+	}
+	
 	/**
 	 * A player passed on setting trump.
 	 */

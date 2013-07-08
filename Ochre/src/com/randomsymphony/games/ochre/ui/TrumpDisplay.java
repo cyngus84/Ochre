@@ -67,8 +67,12 @@ public class TrumpDisplay extends Fragment implements View.OnClickListener {
 	
 	public void setToPickMode() {
 		mPass.setEnabled(true);
-		mSetTrump.setEnabled(true);
 		mSetTrump.setText(R.string.button_set_trump);
+		mSetTrump.setEnabled(false);
+	}
+	
+	public void enableSetTrump() {
+		mSetTrump.setEnabled(true);
 	}
 	
 	public void setToOrderUpMode() {

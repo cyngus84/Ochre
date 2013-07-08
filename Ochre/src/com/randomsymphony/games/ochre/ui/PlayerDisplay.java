@@ -241,6 +241,25 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		    case R.id.discard:
 		    	discard();
 		}
+		
+		Card[] cards = mPlayer.getCurrentCards();
+		switch (v.getId()) {
+	        case R.id.cardSelect1:
+	    	    mGameEngine.setCurrentCandidateTrump(cards[0]);
+	    	    break;
+	        case R.id.cardSelect2:
+	    	    mGameEngine.setCurrentCandidateTrump(cards[1]);
+	    	    break;
+	        case R.id.cardSelect3:
+	    	    mGameEngine.setCurrentCandidateTrump(cards[2]);
+	    	    break;
+	        case R.id.cardSelect4:
+	    	    mGameEngine.setCurrentCandidateTrump(cards[3]);
+	    	    break;
+	        case R.id.cardSelect5:
+	    	    mGameEngine.setCurrentCandidateTrump(cards[4]);
+	    	    break;
+		}
 	}
 	
 	private void discard() {
