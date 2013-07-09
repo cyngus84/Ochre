@@ -123,7 +123,6 @@ public class GameEngine extends Fragment implements StateListener {
 		}
 		
 		setPlayerDisplayEnabled(getNextPlayer(), true);
-		
 	}
 	
 	public void setCurrentCandidateTrump(Card card) {
@@ -184,26 +183,33 @@ public class GameEngine extends Fragment implements StateListener {
 	
 	/**
 	 * A player selected to set trump.
+	 * @param alone Maker is going alone.
 	 */
-	public void setTrump() {
+	public void setTrump(boolean alone) {
 		if (mState.getGamePhase() != GameState.Phase.ORDER_UP &&
 				mState.getGamePhase() != GameState.Phase.PICK_TRUMP) {
 			throw new IllegalStateException("State is invalid for this operation.");
 		}
 
 		Round currentRound = mState.getCurrentRound();
+
 		// the trump setters position from the dealer, the first person to have
 		// an option to set trump is one position from the dealer
 		int positionFromDealer = currentRound.trumpPasses + 1;
-		Player currentPlayer = getNthPlayerInTrick(currentRound.dealer, positionFromDealer,
+		Player maker = getNthPlayerInTrick(currentRound.dealer, positionFromDealer,
 				currentRound);
+		
+		// set alone-ness after we compute which player set trump
+		currentRound.alone = alone;
+		currentRound.tricks.add(new Play[currentRound.getActivePlayers()]);
+		
 		// the first player in a round is always the player to the left of the dealer
 		Player roundStarter = getNthPlayerInTrick(currentRound.dealer, 1, currentRound);
 		
 		// set trump
 		if (mState.getGamePhase() == GameState.Phase.ORDER_UP) {
 			// disable display of order-er
-			setPlayerDisplayEnabled(currentPlayer, false);
+			setPlayerDisplayEnabled(maker, false);
 			
 			// enable display of dealer to pick a discard card
 			currentRound.dealer.addCard(currentRound.trump);
@@ -211,16 +217,16 @@ public class GameEngine extends Fragment implements StateListener {
 			display.showDiscardCard();
 			setPlayerDisplayEnabled(currentRound.dealer, true);
 		} else {
-			currentRound.trump = getPlayerDisplay(currentPlayer).getSelectedCard();
-			Log.d("JMATT", "trump is " + getPlayerDisplay(currentPlayer).getSelectedCard().toString());
+			currentRound.trump = getPlayerDisplay(maker).getSelectedCard();
+			Log.d("JMATT", "trump is " + getPlayerDisplay(maker).getSelectedCard().toString());
 			mState.setGamePhase(GameState.Phase.PLAY);
-			setPlayerDisplayEnabled(currentPlayer, false);
+			setPlayerDisplayEnabled(maker, false);
 			startRound();
 		}
 		
 		// set maker
-		currentRound.maker = currentPlayer;
-		Log.d("JMATT", "Maker is: " + currentPlayer.getName());
+		currentRound.maker = maker;
+		Log.d("JMATT", "Maker is: " + maker.getName());
 		
 		// disable trump display
 		mTrumpDisplay.setToPlayMode();
@@ -333,6 +339,9 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 	
 	private Play scoreTrick(Play[] trick, int trump) {
+		if (trick == null) {
+			throw new RuntimeException();
+		}
 		Play winningPlay = trick[0];
 		for (int ptr = 1; ptr < trick.length; ptr++) {
 			if (GamePlayUtils.isGreater(trick[ptr].card, winningPlay.card,

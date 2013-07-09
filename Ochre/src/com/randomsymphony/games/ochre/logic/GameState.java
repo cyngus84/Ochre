@@ -68,9 +68,6 @@ public class GameState extends Fragment {
 		mDealerOffset++;
 		Round round = createNewRound(mPlayers[mDealerOffset % mPlayers.length]);
 		round.maker = mPlayers[(mDealerOffset + 1) % mPlayers.length];
-		// TODO this should really only be set after we know if a player
-		// is going alone or not.
-		round.tricks.add(new Play[4]);
 		return round;
 	}
 	
