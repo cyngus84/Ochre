@@ -339,9 +339,6 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 	
 	private Play scoreTrick(Play[] trick, int trump) {
-		if (trick == null) {
-			throw new RuntimeException();
-		}
 		Play winningPlay = trick[0];
 		for (int ptr = 1; ptr < trick.length; ptr++) {
 			if (GamePlayUtils.isGreater(trick[ptr].card, winningPlay.card,
