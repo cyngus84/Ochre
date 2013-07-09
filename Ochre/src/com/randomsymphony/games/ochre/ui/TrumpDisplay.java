@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 
 public class TrumpDisplay extends Fragment implements View.OnClickListener {
 
@@ -26,6 +27,7 @@ public class TrumpDisplay extends Fragment implements View.OnClickListener {
 	private GameEngine mEngine;
 	private Button mSetTrump;
 	private Button mPass;
+	private CheckBox mAlone;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -47,13 +49,14 @@ public class TrumpDisplay extends Fragment implements View.OnClickListener {
 		mSetTrump.setOnClickListener(this);
 		mPass = (Button) mContent.findViewById(R.id.pass);
 		mPass.setOnClickListener(this);
+		mAlone = (CheckBox) mContent.findViewById(R.id.go_alone);
 	}
 
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
 			case R.id.set_trump:
-				mEngine.setTrump();
+				mEngine.setTrump(mAlone.isChecked());
 				break;
 			case R.id.pass:
 				mEngine.pass();
@@ -69,22 +72,28 @@ public class TrumpDisplay extends Fragment implements View.OnClickListener {
 		mPass.setEnabled(true);
 		mSetTrump.setText(R.string.button_set_trump);
 		mSetTrump.setEnabled(false);
+		mAlone.setEnabled(false);
+		mAlone.setChecked(false);
 	}
 	
 	public void enableSetTrump() {
 		mSetTrump.setEnabled(true);
+		mAlone.setEnabled(true);
 	}
 	
 	public void setToOrderUpMode() {
 		mPass.setEnabled(true);
 		mSetTrump.setEnabled(true);
 		mSetTrump.setText(R.string.button_order_up);
+		mAlone.setEnabled(true);
+		mAlone.setChecked(false);
 	}
 	
 	public void setToPlayMode() {
 		mPass.setEnabled(false);
 		mSetTrump.setEnabled(false);
 		mSetTrump.setText(R.string.button_order_up);
+		mAlone.setEnabled(false);
 	}
 	
 	public void reset() {

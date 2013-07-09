@@ -3,7 +3,7 @@
     android:layout_height="fill_parent" >
 
     <CheckBox
-        android:id="@+id/checkBox1"
+        android:id="@+id/go_alone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -15,7 +15,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/checkBox1"
+        android:layout_below="@+id/go_alone"
         android:enabled="false"
         android:text="@string/button_order_up" />
 
