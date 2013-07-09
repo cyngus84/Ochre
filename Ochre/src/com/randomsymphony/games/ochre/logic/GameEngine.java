@@ -73,7 +73,12 @@ public class GameEngine extends Fragment implements StateListener {
         redrawAllPlayers();
 		
 		Round newRound = mState.createNewRound();
+		for (PlayerDisplay display : mPlayerDisplays.values()) {
+			display.setDealer(false);
+			display.setMaker(false);
+		}
 		
+		getPlayerDisplay(newRound.dealer).setDealer(true);
 		// speculatively set the trump
 		newRound.trump = possibleTrump;
 		mState.setGamePhase(GameState.Phase.ORDER_UP);
@@ -226,17 +231,14 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		// set maker
 		currentRound.maker = maker;
+		getPlayerDisplay(currentRound.maker).setMaker(true);
 		Log.d("JMATT", "Maker is: " + maker.getName());
 		
 		// disable trump display
 		mTrumpDisplay.setToPlayMode();
 		
-		// TODO move this mode change to wherever we come to after the dealer discards
-		//
 		redrawAllPlayers();
 		mCardTable.setTrumpSuit(currentRound.trump.getSuit());
-
-		// TODO set alone or not
 	}
 	
 	public void discardCard(Card card) {

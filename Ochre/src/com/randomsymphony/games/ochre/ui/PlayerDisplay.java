@@ -46,6 +46,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private Button mDiscard;
 	private boolean mRevealCards = false;
 	private Button mShowHide;
+	private boolean mIsMaker;
+	private boolean mIsDealer;
 
 	public PlayerDisplay() {
 		
@@ -228,10 +230,25 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		mCards[DISCARD_SLOT].setVisibility(mExtraCardVisible ? View.VISIBLE : View.INVISIBLE);
 
 		// set label of player
-		mPlayerLabel.setText("Hi, I'm " + (mPlayer != null ? mPlayer.getName() : "EMPTY") + "\n" + cardList);
+		StringBuilder playerLabel = new StringBuilder(mPlayer != null ? mPlayer.getName() : "EMPTY");
+		if (mIsDealer) {
+			playerLabel.append(" DEALER");
+		}
+		if (mIsMaker) {
+			playerLabel.append(" MAKER");
+		}
 		
+		mPlayerLabel.setText(playerLabel.toString());
 	}
 
+	public void setDealer(boolean isDealer) {
+		mIsDealer = isDealer;
+	}
+	
+	public void setMaker(boolean isMaker) {
+		mIsMaker = isMaker;
+	}
+	
 	private void cardClicked(int cardIndex) {
 		mGameEngine.playCard(mPlayer, mPlayer.getCurrentCards()[cardIndex]);
 	}
