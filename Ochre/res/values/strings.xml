@@ -9,4 +9,6 @@
     <string name="button_pass">Pass</string>
     <string name="alone">I don\'t need my stinkin\' partner</string>
     <string name="discard">Discard</string>
+    <string name="show_cards">Show cards</string>
+    <string name="hide_cards">Hide cards</string>
 </resources>

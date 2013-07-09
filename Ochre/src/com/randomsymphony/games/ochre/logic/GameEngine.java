@@ -244,6 +244,13 @@ public class GameEngine extends Fragment implements StateListener {
 		startRound();
 	}
 	
+	@Override
+	public void onStateChange(Phase newPhase) {
+		for (int ptr = 0, limit = mStateListeners.size(); ptr < limit; ptr++) {
+			mStateListeners.get(ptr).onStateChange(newPhase);
+		}
+	}
+	
 	private void startRound() {
 		Round currentRound = mState.getCurrentRound();
 		Player roundStarter = getNthPlayerInTrick(currentRound.dealer, 1, currentRound);
@@ -340,13 +347,6 @@ public class GameEngine extends Fragment implements StateListener {
 		for (PlayerDisplay display : mPlayerDisplays.values()) {
 			// this is wasteful, would be better to just redraw one player
 			display.redraw();
-		}
-	}
-
-	@Override
-	public void onStateChange(Phase newPhase) {
-		for (int ptr = 0, limit = mStateListeners.size(); ptr < limit; ptr++) {
-			mStateListeners.get(ptr).onStateChange(newPhase);
 		}
 	}
 }

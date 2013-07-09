@@ -44,6 +44,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private RadioButton[] mCardSelectors = new RadioButton[5];
 	private RadioButton mExtraCardSelector;
 	private Button mDiscard;
+	private boolean mRevealCards = false;
+	private Button mShowHide;
 
 	public PlayerDisplay() {
 		
@@ -68,6 +70,11 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	
 	public Player getPlayer() {
 		return mPlayer;
+	}
+	
+	public void setRevealCards(boolean reveal) {
+		mRevealCards = reveal;
+		redraw();
 	}
 
 	@Override
@@ -121,6 +128,9 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		
 		mDiscard = (Button) mContent.findViewById(R.id.discard);
 		mDiscard.setOnClickListener(this);
+		
+		mShowHide = (Button) mContent.findViewById(R.id.show_hide);
+		mShowHide.setOnClickListener(this);
 	}
 	
 	/**
@@ -128,6 +138,10 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	 * player will have their controls enabled.
 	 */
 	public void setActive(boolean isActive) {
+		if (!isActive) {
+			mRevealCards = false;
+		}
+		
 		if (mIsActive != isActive) {
 			mIsActive = isActive;
 			redraw();
@@ -144,12 +158,26 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 			return;
 		}
 		
+		if (mIsActive) {
+			mShowHide.setEnabled(true);
+			mShowHide.setVisibility(View.VISIBLE);
+		} else {
+			mShowHide.setEnabled(false);
+			mShowHide.setVisibility(View.GONE);
+		}
+		
+		if (mRevealCards) {
+			mShowHide.setText(R.string.hide_cards);
+		} else {
+			mShowHide.setText(R.string.show_cards);
+		}
+		
 		String cardList = "";
 		if (mPlayer != null) {
 			Card[] playerCards = mPlayer.getCurrentCards();
 			for (int ptr = 0; ptr < mCards.length; ptr++) {
 
-				if (mIsActive) {
+				if (mIsActive && mRevealCards) {
 					// does this slot contain a card?
 					if (ptr < playerCards.length) {
 						Card target = playerCards[ptr];
@@ -240,6 +268,11 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		    	break;
 		    case R.id.discard:
 		    	discard();
+		    	break;
+		    case R.id.show_hide:
+		    	mRevealCards = !mRevealCards;
+		    	redraw();
+		    	break;
 		}
 		
 		Card[] cards = mPlayer.getCurrentCards();
