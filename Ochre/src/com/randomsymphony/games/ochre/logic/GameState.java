@@ -36,6 +36,7 @@ public class GameState extends Fragment {
 	}
 	
 	private Player[] mPlayers = new Player[4];
+	private int[] mScores = new int[] {0, 0, 0, 0};
 	private PlayerFactory mPlayerSource;
 	private DeckOfCards mDeck;
 	private Card mCurrentTrump;
@@ -43,6 +44,7 @@ public class GameState extends Fragment {
 	private int mDealerOffset = -1;
 	private Phase mGamePhase = Phase.NONE;
 	private StateListener mStateListener;
+	
 	
 	public GameState(PlayerFactory playerFactory) {
 		mPlayerSource = playerFactory;
@@ -88,6 +90,17 @@ public class GameState extends Fragment {
 	
 	public void setPhaseListener(StateListener listener) {
 		mStateListener = listener;
+	}
+	
+	public void addPoints(Player player, int numPoints) {
+		Log.d("JMATT", "Adding " + numPoints + " to " + player.getName() + "'s team");
+		for (int ptr = 0; ptr < mScores.length; ptr++) {
+			if (player == mPlayers[ptr]) {
+				mScores[ptr] += numPoints;
+				Log.d("JMATT", "Total points: " + mScores[ptr]);
+				break;
+			}
+		}
 	}
 	
 	private void initPlayers() {

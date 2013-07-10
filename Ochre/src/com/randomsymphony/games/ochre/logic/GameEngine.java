@@ -1,5 +1,6 @@
 package com.randomsymphony.games.ochre.logic;
 
+import java.awt.font.NumericShaper;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -18,6 +19,12 @@ import android.util.Log;
 public class GameEngine extends Fragment implements StateListener {
 
 	public static final int NUMBER_OF_TRICKS = 5;
+	private static final int WIN_THRESHOLD = 3;
+	// number of points for making the round normally
+	private static final int NUM_POINTS_MAKE = 1;
+	private static final int NUM_POINTS_ALL_5 = 2;
+	private static final int NUM_POINTS_ALL_5_ALONE = 4;
+	private static final int NUM_POINTS_SET = 2;
 	
 	private TableDisplay mCardTable;
 	/**
@@ -113,6 +120,7 @@ public class GameEngine extends Fragment implements StateListener {
 			Log.d("JMATT", "And the winner is: " + winningPlay.card.toString());
 
 			if (currRound.totalPlays == currRound.getActivePlayers() * NUMBER_OF_TRICKS) {
+				scoreRound();
 				// time for a new round
 				newRound();
 			} else {
@@ -128,6 +136,62 @@ public class GameEngine extends Fragment implements StateListener {
 		}
 		
 		setPlayerDisplayEnabled(getNextPlayer(), true);
+	}
+	
+	private void scoreRound() {
+		Round finishedRound = mState.getCurrentRound();
+		
+		HashMap<Player, Integer> winCount = new HashMap<Player, Integer>();
+		// for all the tricks in the round, determine the winner
+		for (int ptr = 0, limit = finishedRound.tricks.size(); ptr < limit; ptr++) {
+			Play[] trick = finishedRound.tricks.get(ptr);
+			Play winningPlay = scoreTrick(trick, finishedRound.trump.getSuit());
+			if (winCount.containsKey(winningPlay.player)) {
+				winCount.put(winningPlay.player, winCount.get(winningPlay.player) + 1);
+			} else {
+				winCount.put(winningPlay.player, 1);
+			}
+		}
+
+		// we've got the totals, add them up for the partners
+		Player[] players = mState.getPlayers();
+		int makerPosition = -1;
+		int[] scores = new int[players.length / 2];
+		for (int ptr = 0; ptr < players.length; ptr++) {
+			if (winCount.containsKey(players[ptr])) {
+				scores[ptr % 2] += winCount.get(players[ptr]);
+			}
+			if (players[ptr] == finishedRound.maker) {
+				makerPosition = ptr;
+			}
+		}
+
+		if (makerPosition == -1) {
+			throw new RuntimeException("Scoring error, maker not found.");
+		}
+		
+		// determine position of the maker
+		boolean wasSet = false;
+		if (scores[makerPosition % 2] < WIN_THRESHOLD) {
+			wasSet = true;
+		}
+		
+		if (!wasSet) {
+			int numberOfPoints;
+			// check how many points the winning team got
+			if (scores[makerPosition % 2] == NUMBER_OF_TRICKS) {
+				if (finishedRound.alone) {
+					numberOfPoints = NUM_POINTS_ALL_5_ALONE;
+				} else {
+					numberOfPoints = NUM_POINTS_ALL_5;
+				}
+			} else {
+				numberOfPoints = NUM_POINTS_MAKE;
+			}
+			mState.addPoints(players[makerPosition % 2], numberOfPoints);
+		} else {
+			mState.addPoints(players[makerPosition % 2 + 1], NUM_POINTS_SET);
+		}
 	}
 	
 	public void setCurrentCandidateTrump(Card card) {
