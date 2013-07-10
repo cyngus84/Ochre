@@ -48,7 +48,10 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private Button mShowHide;
 	private boolean mIsMaker;
 	private boolean mIsDealer;
-
+	private boolean mRadiosPresent = false;
+	private TextView mTrickText;
+	private int mTrickCount = 0;
+	
 	public PlayerDisplay() {
 		
 	}
@@ -133,6 +136,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		
 		mShowHide = (Button) mContent.findViewById(R.id.show_hide);
 		mShowHide.setOnClickListener(this);
+		
+		mTrickText = (TextView) mContent.findViewById(R.id.trick_text);
 	}
 	
 	/**
@@ -148,6 +153,11 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 			mIsActive = isActive;
 			redraw();
 		}
+	}
+	
+	public void setTrickCount(int count) {
+		mTrickCount = count;
+		redraw();
 	}
 	
 	/**
@@ -238,9 +248,15 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 			playerLabel.append(" MAKER");
 		}
 		
+		if (mTrickCount > 0) {
+			mTrickText.setText("Tricks: " + mTrickCount);
+		} else {
+			mTrickText.setText("");
+		}
+		
 		mPlayerLabel.setText(playerLabel.toString());
 	}
-
+	
 	public void setDealer(boolean isDealer) {
 		mIsDealer = isDealer;
 	}
@@ -348,8 +364,6 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		}
 	}
 
-	private boolean mRadiosPresent = false;
-	
 	private void setRadioVisibility(boolean present) {
 		mRadiosPresent = present;
 	}
@@ -371,6 +385,14 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		    	setRadioVisibility(false);
 		    	break;
 		}
+		
+		// reset trick count
+		switch (newPhase) {
+		    case ORDER_UP:
+			    mTrickCount = 0;
+			    break;
+		}
+		
 		redraw();
 	}
 	

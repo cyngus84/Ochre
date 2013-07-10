@@ -11,4 +11,5 @@
 	<dimen name="card_padding">2dp</dimen>
 	<dimen name="player_margin">6dp</dimen>
 	<dimen name="player_name_margin">0dp</dimen>
+	<dimen name="trick_margin_left">20dp</dimen>
 </resources>

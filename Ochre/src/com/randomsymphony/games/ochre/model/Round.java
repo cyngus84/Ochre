@@ -2,6 +2,7 @@ package com.randomsymphony.games.ochre.model;
 
 import android.util.Log;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Round {
 	public Card trump;
@@ -11,6 +12,7 @@ public class Round {
 	public Player maker;
 	public int totalPlays;
 	public int trumpPasses;
+	public HashMap<Player, Integer> mCapturedTricks = new HashMap<Player, Integer>();
 	
 	private static final int[] TRUMPS = new int[] {Card.SUIT_CLUBS, Card.SUIT_SPADES, Card.SUIT_DIAMONDS, Card.SUIT_HEARTS};
 	private static int sTrumpOffset = 0;
@@ -88,5 +90,19 @@ public class Round {
 		} else {
 			return totalPlays % getActivePlayers() == 0;
 		}
+	}
+	
+	/**
+	 * Adds a captured trick for this player.
+	 * @return The total number of tricks captured by this player
+	 */
+	public int addCapturedTrick(Player player) {
+		if (mCapturedTricks.containsKey(player)) {
+			mCapturedTricks.put(player, mCapturedTricks.get(player) + 1);
+		} else {
+			mCapturedTricks.put(player, 1);
+		}
+		
+		return mCapturedTricks.get(player);
 	}
 }

@@ -45,7 +45,6 @@ public class GameState extends Fragment {
 	private Phase mGamePhase = Phase.NONE;
 	private StateListener mStateListener;
 	
-	
 	public GameState(PlayerFactory playerFactory) {
 		mPlayerSource = playerFactory;
 		initPlayers();
