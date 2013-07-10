@@ -102,6 +102,15 @@ public class GameState extends Fragment {
 		}
 	}
 	
+	public int getPointsForPlayer(Player player) {
+		for (int ptr = 0; ptr < mScores.length; ptr++) {
+			if (player == mPlayers[ptr]) {
+				return mScores[ptr];
+			}
+		}
+		return -1;
+	}
+	
 	private void initPlayers() {
 		for (int count = 0; count < mPlayers.length; count++) {
 			mPlayers[count] = mPlayerSource.createPlayer();

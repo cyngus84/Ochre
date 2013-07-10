@@ -10,6 +10,7 @@ import com.randomsymphony.games.ochre.model.Play;
 import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.model.Round;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
+import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 
@@ -33,6 +34,7 @@ public class GameEngine extends Fragment implements StateListener {
 	private HashMap<Integer, PlayerDisplay> mPlayerDisplays = new HashMap<Integer, PlayerDisplay>();
 	private GameState mState;
 	private TrumpDisplay mTrumpDisplay;
+	private ScoreBoard mScoreBoard;
 	private ArrayList<StateListener> mStateListeners = new ArrayList<StateListener>();
 
 	public void registerStateListener(StateListener listener) {
@@ -61,6 +63,9 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 	
 	public void startGame() {
+    	Player[] players = mState.getPlayers();
+    	mScoreBoard.setTeamOneName(players[0].getName() + " & " + players[2].getName());
+    	mScoreBoard.setTeamTwoName(players[1].getName() + " & " + players[3].getName());
 		newRound();
 	}
 	
@@ -363,6 +368,8 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 	
 	private void scoreRound() {
+		// TODO the round is actually tracking the number of tricks captured
+		// by each player, look at that which will allow us to do less work here
 		Round finishedRound = mState.getCurrentRound();
 		
 		HashMap<Player, Integer> winCount = new HashMap<Player, Integer>();
@@ -414,8 +421,11 @@ public class GameEngine extends Fragment implements StateListener {
 			}
 			mState.addPoints(players[makerPosition % 2], numberOfPoints);
 		} else {
-			mState.addPoints(players[makerPosition % 2 + 1], NUM_POINTS_SET);
+			mState.addPoints(players[(makerPosition + 1) % 2], NUM_POINTS_SET);
 		}
+		
+		mScoreBoard.setTeamOneScore(mState.getPointsForPlayer(players[0]));
+		mScoreBoard.setTeamTwoScore(mState.getPointsForPlayer(players[1]));
 	}
 	
 	private void redrawAllPlayers() {
@@ -423,5 +433,9 @@ public class GameEngine extends Fragment implements StateListener {
 			// this is wasteful, would be better to just redraw one player
 			display.redraw();
 		}
+	}
+
+	public void setScoreBoard(ScoreBoard scoreBoard) {
+		mScoreBoard = scoreBoard;
 	}
 }

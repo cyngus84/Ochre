@@ -7,6 +7,7 @@ import com.randomsymphony.games.ochre.logic.PlayerFactory;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
+import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 import com.randomsymphony.games.ochre.R;
@@ -28,16 +29,24 @@ public class CardTableActivity extends FragmentActivity {
 	private GameEngine mEngine;
 	private TableDisplay mTableDisplay;
 	private TrumpDisplay mTrumpWidget;
+	private ScoreBoard mScoreBoard;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_card_table);
+        initScoreBoard();
         initGameState();
         initGameEngine();
         initTableDisplay();
         initTrump();
         initPlayers();
+    }
+
+    private void initScoreBoard() {
+    	mScoreBoard = new ScoreBoard();
+    	getSupportFragmentManager().beginTransaction().replace(R.id.score_board, mScoreBoard)
+    	        .commit();
     }
     
     private void initGameState() {
@@ -73,6 +82,7 @@ public class CardTableActivity extends FragmentActivity {
     	mEngine.setGameState(mGameState);
     	mEngine.setRetainInstance(true);
     	getSupportFragmentManager().beginTransaction().add(mEngine, TAG_GAME_ENGINE).commit();
+    	mEngine.setScoreBoard(mScoreBoard);
     }
     
     private void initPlayers() {

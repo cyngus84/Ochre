@@ -12,4 +12,6 @@
 	<dimen name="player_margin">6dp</dimen>
 	<dimen name="player_name_margin">0dp</dimen>
 	<dimen name="trick_margin_left">20dp</dimen>
+	<dimen name="vertical_margin_scoreboard">12dp</dimen>
+	<dimen name="score_board_column_margin">8dp</dimen>
 </resources>
