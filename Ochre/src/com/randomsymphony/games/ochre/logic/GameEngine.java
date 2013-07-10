@@ -223,24 +223,28 @@ public class GameEngine extends Fragment implements StateListener {
 		currentRound.alone = alone;
 		currentRound.tricks.add(new Play[currentRound.getActivePlayers()]);
 		
-		// the first player in a round is always the player to the left of the dealer
-		Player roundStarter = getNthPlayerInTrick(currentRound.dealer, 1, currentRound);
+		// disable display of order-er
+		setPlayerDisplayEnabled(maker, false);
 		
 		// set trump
 		if (mState.getGamePhase() == GameState.Phase.ORDER_UP) {
-			// disable display of order-er
-			setPlayerDisplayEnabled(maker, false);
-			
-			// enable display of dealer to pick a discard card
-			currentRound.dealer.addCard(currentRound.trump);
-			PlayerDisplay display = getPlayerDisplay(currentRound.dealer);
-			display.showDiscardCard();
-			setPlayerDisplayEnabled(currentRound.dealer, true);
+			// trump has already been set optimistically to the dealt trump
+			// card's suit, don't need to do anything else if the dealer's
+			// partner is going alone
+
+			if (!currentRound.alone || (currentRound.alone && currentRound.trumpPasses != 1)) {
+				// enable display of dealer to pick a discard card
+				currentRound.dealer.addCard(currentRound.trump);
+				PlayerDisplay display = getPlayerDisplay(currentRound.dealer);
+				display.showDiscardCard();
+				setPlayerDisplayEnabled(currentRound.dealer, true);
+			} else {
+				startRound();
+			}
 		} else {
 			currentRound.trump = getPlayerDisplay(maker).getSelectedCard();
 			Log.d("JMATT", "trump is " + getPlayerDisplay(maker).getSelectedCard().toString());
 			mState.setGamePhase(GameState.Phase.PLAY);
-			setPlayerDisplayEnabled(maker, false);
 			startRound();
 		}
 		
@@ -275,8 +279,7 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 	
 	private void startRound() {
-		Round currentRound = mState.getCurrentRound();
-		Player roundStarter = getNthPlayerInTrick(currentRound.dealer, 1, currentRound);
+		Player roundStarter = getNextPlayer();
 		setPlayerDisplayEnabled(roundStarter, true);
 		mState.setGamePhase(GameState.Phase.PLAY);
 	}
@@ -297,11 +300,9 @@ public class GameEngine extends Fragment implements StateListener {
 	
 	private Player getNextPlayer() {
 		Round currentRound = mState.getCurrentRound();
-		if (currentRound.totalPlays == 0) {
-			return getNthPlayerInTrick(currentRound.dealer, 1, currentRound);
-		}
 		
-		if (currentRound.isCurrentTrickComplete()) {
+		if (currentRound.isCurrentTrickComplete() && 
+				currentRound.totalPlays >= currentRound.getActivePlayers()) {
 			// the next player is the winner of the last trick
 			return scoreTrick(currentRound.getLastCompletedTrick(),
 					mState.getCurrentRound().trump.getSuit()).player;
@@ -309,9 +310,34 @@ public class GameEngine extends Fragment implements StateListener {
 			// next player is the winner of the previous trick, plus number of
 			// plays in this one
 			if (currentRound.totalPlays < currentRound.getActivePlayers()) {
+				Player roundStarter = currentRound.dealer;
+				int playOffset = currentRound.totalPlays + 1;
+				
+				// deal with the case that the dealer is sitting out
+				if (currentRound.alone && currentRound.maker != currentRound.dealer) {
+					Player[] allPlayers = mState.getPlayers();
+					int dealerOffset = -1;
+					int makerOffset = -1;
+					
+					for (int ptr = 0; ptr < allPlayers.length; ptr++) {
+						if (allPlayers[ptr] == currentRound.maker) {
+							makerOffset = ptr;
+						} else if (allPlayers[ptr] == currentRound.dealer) {
+							dealerOffset = ptr;
+						}
+					}
+					
+					// dealer's partner is going alone, treat player to left 
+					// of dealer as the anchor point and produce an offset from there
+					if (dealerOffset  % (allPlayers.length / 2) ==
+							makerOffset % (allPlayers.length / 2)) {
+						roundStarter = allPlayers[(dealerOffset + 1) % allPlayers.length];
+						playOffset--;
+					}
+				}
+				
 				// we're still in the first trick, offset is from dealer's left
-				return getNthPlayerInTrick(currentRound.dealer, currentRound.totalPlays + 1,
-						currentRound);
+				return getNthPlayerInTrick(roundStarter, playOffset, currentRound);
 			} else {
 				Play lastTrickWinner = scoreTrick(currentRound.getLastCompletedTrick(),
 						currentRound.trump.getSuit());
@@ -349,6 +375,14 @@ public class GameEngine extends Fragment implements StateListener {
 		for (int ptr = 0; ptr < activePlayers.size(); ptr++) {
 			if (activePlayers.get(ptr) == start) {
 				return activePlayers.get((ptr + seatsLeft) % activePlayers.size());
+			}
+		}
+		
+		// dealer's partner must be going alone, return the player "behind"
+		// the loaner
+		for (int loneWolf = 0; loneWolf < activePlayers.size(); loneWolf++) {
+			if (activePlayers.get(loneWolf) == round.maker) {
+				return activePlayers.get((loneWolf + 2) % activePlayers.size());
 			}
 		}
 		
