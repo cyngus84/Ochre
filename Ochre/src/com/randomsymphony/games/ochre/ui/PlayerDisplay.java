@@ -19,17 +19,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RadioButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class PlayerDisplay extends Fragment implements View.OnClickListener, StateListener {
 
 	private static final String KEY_GAME_ENGINE_TAG = "game_engine";
+	private static final String KEY_WIDE_DISPLAY = "wide_display";
 	private static final int DISCARD_SLOT = 5;
 
-	public static PlayerDisplay getInstance(String tag) {
+	/**
+	 * @param tag The fragment tag under which the game engine can be found.
+	 * @param isWide Whether this should be a "wide" or "tall" display,
+	 * will determine which layout is used when drawing the player display.
+	 */
+	public static PlayerDisplay getInstance(String tag, boolean isWide) {
 		PlayerDisplay display = new PlayerDisplay();
 		Bundle args = new Bundle();
 		args.putString(KEY_GAME_ENGINE_TAG, tag);
+		args.putBoolean(KEY_WIDE_DISPLAY, isWide);
 		display.setArguments(args);
 		return display;
 	}
@@ -51,6 +59,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private boolean mRadiosPresent = false;
 	private TextView mTrickText;
 	private int mTrickCount = 0;
+	private int LAYOUT_ID;
+	private boolean mWideDisplay;
 	
 	public PlayerDisplay() {
 		
@@ -62,6 +72,9 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		mGameEngine = (GameEngine) getActivity().getSupportFragmentManager()
 				.findFragmentByTag(getArguments().getString(KEY_GAME_ENGINE_TAG));
 		mGameEngine.registerStateListener(this);
+		mWideDisplay = getArguments().getBoolean(KEY_WIDE_DISPLAY, false);
+		LAYOUT_ID =  mWideDisplay ? R.layout.fragment_play_display_wide : 
+			    R.layout.fragment_play_display;
 	}
 	
 	/**
@@ -85,7 +98,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		mContent = (ViewGroup) inflater.inflate(R.layout.fragment_play_display, null);
+		mContent = (ViewGroup) inflater.inflate(LAYOUT_ID, null);
 		initViewReferences(mContent);
 		redraw();
 		return mContent;
@@ -188,7 +201,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		if (mPlayer != null) {
 			Card[] playerCards = mPlayer.getCurrentCards();
 			for (int ptr = 0; ptr < mCards.length; ptr++) {
-
+				Button cardButton = mCards[ptr];
+				
 				if (mIsActive && mRevealCards) {
 					// does this slot contain a card?
 					if (ptr < playerCards.length) {
@@ -197,26 +211,26 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 						// if there is no card and we're active, its only
 						// clickable in play mode
 						if (mPhase == GameState.Phase.PLAY) {
-							mCards[ptr].setClickable(true);
+							cardButton.setClickable(true);
 						} else {
-							mCards[ptr].setClickable(false);
+							cardButton.setClickable(false);
 						}
 
 						Card.formatButtonAsCard(mCards[ptr], target, getResources());
 					} else {
 						if (ptr < 6) {
-							mCards[ptr].setClickable(false);
-							mCards[ptr].setBackgroundColor(Color.GREEN);
-							mCards[ptr].setText("");
+							cardButton.setClickable(false);
+							cardButton.setBackgroundColor(Color.GREEN);
+							cardButton.setText("");
 						} else {
-							mCards[ptr].setVisibility(View.GONE);
+							cardButton.setVisibility(View.GONE);
 							mExtraCardSelector.setVisibility(View.GONE);
 						}
 					}
 				} else {
-					mCards[ptr].setText("*");
-					mCards[ptr].setBackgroundColor(getResources().getColor(R.color.disabled_card));
-					mCards[ptr].setClickable(false);
+					cardButton.setText("*");
+					cardButton.setBackgroundColor(getResources().getColor(R.color.disabled_card));
+					cardButton.setClickable(false);
 				}
 			}
 		} else {

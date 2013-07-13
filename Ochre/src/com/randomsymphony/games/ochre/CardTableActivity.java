@@ -86,10 +86,10 @@ public class CardTableActivity extends FragmentActivity {
     }
     
     private void initPlayers() {
-    	mPlayerWidgets[0] = PlayerDisplay.getInstance(TAG_GAME_ENGINE);
-    	mPlayerWidgets[1] = PlayerDisplay.getInstance(TAG_GAME_ENGINE);
-    	mPlayerWidgets[2] = PlayerDisplay.getInstance(TAG_GAME_ENGINE);
-    	mPlayerWidgets[3] = PlayerDisplay.getInstance(TAG_GAME_ENGINE);
+    	mPlayerWidgets[0] = PlayerDisplay.getInstance(TAG_GAME_ENGINE, false);
+    	mPlayerWidgets[1] = PlayerDisplay.getInstance(TAG_GAME_ENGINE, true);
+    	mPlayerWidgets[2] = PlayerDisplay.getInstance(TAG_GAME_ENGINE, false);
+    	mPlayerWidgets[3] = PlayerDisplay.getInstance(TAG_GAME_ENGINE, true);
     	
     	getSupportFragmentManager().beginTransaction().replace(R.id.player0, mPlayerWidgets[0]).commit();
     	getSupportFragmentManager().beginTransaction().replace(R.id.player1, mPlayerWidgets[1]).commit();
