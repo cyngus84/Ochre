@@ -21,7 +21,6 @@ import android.widget.TextView;
 
 public class PlayerDisplay extends Fragment implements View.OnClickListener, StateListener {
 
-	private static final String KEY_GAME_ENGINE_TAG = "game_engine";
 	private static final String KEY_WIDE_DISPLAY = "wide_display";
 	private static final int DISCARD_SLOT = 5;
 
@@ -30,10 +29,9 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	 * @param isWide Whether this should be a "wide" or "tall" display,
 	 * will determine which layout is used when drawing the player display.
 	 */
-	public static PlayerDisplay getInstance(String tag, boolean isWide) {
+	public static PlayerDisplay getInstance(boolean isWide) {
 		PlayerDisplay display = new PlayerDisplay();
 		Bundle args = new Bundle();
-		args.putString(KEY_GAME_ENGINE_TAG, tag);
 		args.putBoolean(KEY_WIDE_DISPLAY, isWide);
 		display.setArguments(args);
 		return display;
@@ -67,8 +65,6 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mGameEngine = (GameEngine) getActivity().getSupportFragmentManager()
-				.findFragmentByTag(getArguments().getString(KEY_GAME_ENGINE_TAG));
 		mGameEngine.registerStateListener(this);
 		mWideDisplay = getArguments().getBoolean(KEY_WIDE_DISPLAY, false);
 		LAYOUT_ID =  mWideDisplay ? R.layout.fragment_play_display_wide : 
@@ -133,6 +129,10 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	public void setTrickCount(int count) {
 		mTrickCount = count;
 		redraw();
+	}
+	
+	public void setGameEngine(GameEngine engine) {
+		mGameEngine = engine;
 	}
 	
 	/**

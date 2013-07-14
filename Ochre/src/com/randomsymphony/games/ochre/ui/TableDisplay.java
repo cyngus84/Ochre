@@ -16,7 +16,6 @@ import android.widget.Button;
 public class TableDisplay extends Fragment {
 
 	public static final String ARG_NUMBER_OF_PLAYER = "num_players";
-	public static final String ARG_GAME_ENGINE = "game_engine";
 	public static final String ARG_GAME_STATE = "game_state";
 
 	/**
@@ -25,11 +24,9 @@ public class TableDisplay extends Fragment {
 	 * @param gameEngineTag The tag that the {@link GameEngine} can be found at.
 	 * @return
 	 */
-	public static TableDisplay getInstance(int numberOfPlayers, String gameEngineTag,
-			String gameStateTag) {
+	public static TableDisplay getInstance(int numberOfPlayers, String gameStateTag) {
 		Bundle args = new Bundle();
 		args.putInt(ARG_NUMBER_OF_PLAYER, numberOfPlayers);
-		args.putString(ARG_GAME_ENGINE, gameEngineTag);
 		args.putString(ARG_GAME_STATE, gameStateTag);
 		
 		TableDisplay instance = new TableDisplay();
@@ -39,7 +36,6 @@ public class TableDisplay extends Fragment {
 	
 	private View mContent;
 	private Button[] mPlayedCards;
-	private GameEngine mEngine;
 	private Button mTrumpCard;
 	private GameState mGameState;
 	
@@ -47,8 +43,6 @@ public class TableDisplay extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mPlayedCards = new Button[4];
-		mEngine = (GameEngine) getFragmentManager().findFragmentByTag(
-				getArguments().getString(ARG_GAME_ENGINE));
 		mGameState = (GameState) getFragmentManager().findFragmentByTag(
 				getArguments().getString(ARG_GAME_STATE));
 	}

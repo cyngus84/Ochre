@@ -1,6 +1,5 @@
 package com.randomsymphony.games.ochre.logic;
 
-import java.awt.font.NumericShaper;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,6 +14,7 @@ import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 
@@ -28,6 +28,23 @@ public class GameEngine extends Fragment implements StateListener {
 	private static final int NUM_POINTS_ALL_5_ALONE = 4;
 	private static final int NUM_POINTS_SET = 2;
 	
+	private static final String TAG_TRUMP_DISPLAY = "trump_display";
+	private static final String TAG_GAME_STATE = "game_state";
+	private static final String TAG_SCORE_DISPLAY = "score_board";
+	private static final String TAG_TABLE_DISPLAY = "table_display";
+	
+	public static GameEngine getInstance(String trumpDisplayTag, String gameStateTag,
+			String scoreBoardTag, String tableDisplayTag) {
+		Bundle args = new Bundle();
+		args.putString(TAG_TRUMP_DISPLAY, trumpDisplayTag);
+		args.putString(TAG_GAME_STATE, gameStateTag);
+		args.putString(TAG_SCORE_DISPLAY, scoreBoardTag);
+		args.putString(TAG_TABLE_DISPLAY, tableDisplayTag);
+		GameEngine instance = new GameEngine();
+		instance.setArguments(args);
+		return instance;
+	}
+	
 	private TableDisplay mCardTable;
 	/**
 	 * Did I want this to map from view id to playerdisplay?
@@ -38,6 +55,20 @@ public class GameEngine extends Fragment implements StateListener {
 	private ScoreBoard mScoreBoard;
 	private ArrayList<StateListener> mStateListeners = new ArrayList<StateListener>();
 
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		Bundle args = getArguments();
+		mTrumpDisplay = (TrumpDisplay) getFragmentManager().findFragmentByTag(
+				args.getString(TAG_TRUMP_DISPLAY));
+		setGameState((GameState) getFragmentManager().findFragmentByTag(
+				args.getString(TAG_GAME_STATE)));
+		mScoreBoard = (ScoreBoard) getFragmentManager().findFragmentByTag(
+				args.getString(TAG_SCORE_DISPLAY));
+		mCardTable = (TableDisplay) getFragmentManager().findFragmentByTag(
+				args.getString(TAG_TABLE_DISPLAY));
+	}
+	
 	public void registerStateListener(StateListener listener) {
 		mStateListeners.add(listener);
 	}
@@ -47,6 +78,7 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 	
 	public void setPlayerDisplay(int player, PlayerDisplay display) {
+		display.setGameEngine(this);
 		mPlayerDisplays.put(player, display);
 	}
 	

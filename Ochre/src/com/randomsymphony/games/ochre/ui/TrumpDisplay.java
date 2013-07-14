@@ -13,13 +13,8 @@ import android.widget.CheckBox;
 
 public class TrumpDisplay extends Fragment implements View.OnClickListener {
 
-	public static final String ARG_GAME_ENGINE_TAG = "game_engine";
-	
-	public static TrumpDisplay getInstance(String gameEngineTag) {
-		Bundle args = new Bundle();
-		args.putString(ARG_GAME_ENGINE_TAG, gameEngineTag);
+	public static TrumpDisplay getInstance() {
 		TrumpDisplay display = new TrumpDisplay();
-		display.setArguments(args);
 		return display;
 	}
 	
@@ -28,13 +23,6 @@ public class TrumpDisplay extends Fragment implements View.OnClickListener {
 	private Button mSetTrump;
 	private Button mPass;
 	private CheckBox mAlone;
-	
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		mEngine = (GameEngine) getFragmentManager().findFragmentByTag(getArguments().getString(
-				ARG_GAME_ENGINE_TAG));
-		super.onCreate(savedInstanceState);
-	}
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -90,6 +78,10 @@ public class TrumpDisplay extends Fragment implements View.OnClickListener {
 	
 	public void reset() {
 		setToOrderUpMode();		
+	}
+	
+	public void setGameEngine(GameEngine engine) {
+		mEngine = engine;
 	}
 
 	private void initView() {

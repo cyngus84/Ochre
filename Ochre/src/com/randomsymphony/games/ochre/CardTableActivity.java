@@ -20,6 +20,9 @@ public class CardTableActivity extends FragmentActivity {
 	
     private static final String TAG_GAME_ENGINE = "com.randomsymphony.games.ochre.GAME_ENGINE";
     private static final String TAG_GAME_STATE = "com.randomsymphony.games.ochre.GAME_STATE";
+    private static final String TAG_TRUMP_DISPLAY = "com.randomsymphony.games.ochre.TRUMP_DISPLAY";
+    private static final String TAG_SCORE_BOARD = "com.randomsymphony.games.ochre.SCORE_DISPLAY";
+    private static final String TAG_TABLE_DISPLAY = "com.randomsymphony.games.ochre.TABLE_DISPLAY";
 	private PlayerDisplay[] mPlayerWidgets = new PlayerDisplay[4];
 	private GameState mGameState;
 	private GameEngine mEngine;
@@ -32,12 +35,12 @@ public class CardTableActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_card_table);
-        initScoreBoard();
         initGameState();
-        initGameEngine();
+        initScoreBoard();
         initTableDisplay();
         initTrump();
         initPlayers();
+        initGameEngine();
         mStart = (Button) findViewById(R.id.start);
         mStart.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -64,8 +67,8 @@ public class CardTableActivity extends FragmentActivity {
 
     private void initScoreBoard() {
     	mScoreBoard = new ScoreBoard();
-    	getSupportFragmentManager().beginTransaction().replace(R.id.score_board, mScoreBoard)
-    	        .commit();
+    	getSupportFragmentManager().beginTransaction().replace(R.id.score_board, mScoreBoard,
+    			TAG_SCORE_BOARD).commit();
     }
     
     private void initGameState() {
@@ -75,33 +78,37 @@ public class CardTableActivity extends FragmentActivity {
     }
     
     private void initTableDisplay() {
-    	mTableDisplay = TableDisplay.getInstance(4, TAG_GAME_ENGINE, TAG_GAME_STATE);
-    	mEngine.setTableDisplay(mTableDisplay);
-    	getSupportFragmentManager().beginTransaction().replace(R.id.table_display, mTableDisplay)
-    	        .commit();
+    	mTableDisplay = TableDisplay.getInstance(4, TAG_GAME_STATE);
+    	getSupportFragmentManager().beginTransaction().replace(R.id.table_display, mTableDisplay,
+    			TAG_TABLE_DISPLAY).commit();
     }
     
     private void initTrump() {
-    	mTrumpWidget = TrumpDisplay.getInstance(TAG_GAME_ENGINE);
-    	getSupportFragmentManager().beginTransaction().replace(R.id.trump_controls, mTrumpWidget)
-    	        .commit();
-    	mEngine.setTrumpDisplay(mTrumpWidget);
+    	mTrumpWidget = TrumpDisplay.getInstance();
+    	getSupportFragmentManager().beginTransaction().replace(R.id.trump_controls, mTrumpWidget,
+    			TAG_TRUMP_DISPLAY).commit();
     }
     
     private void initGameEngine() {
-    	mEngine = new GameEngine();
-    	// TODO switch GameEngine to looking for the state by a tag
-    	mEngine.setGameState(mGameState);
+    	mEngine = GameEngine.getInstance(TAG_TRUMP_DISPLAY, TAG_GAME_STATE, TAG_SCORE_BOARD,
+    			TAG_TABLE_DISPLAY);
     	mEngine.setRetainInstance(true);
     	getSupportFragmentManager().beginTransaction().add(mEngine, TAG_GAME_ENGINE).commit();
-    	mEngine.setScoreBoard(mScoreBoard);
+
+    	// wire the engine to the widgets that want to know about it
+    	mTrumpWidget.setGameEngine(mEngine);
+    	
+    	// add the player displays to the game engine
+        for (int count = 0; count < mPlayerWidgets.length; count++) {
+        	mEngine.setPlayerDisplay(count, mPlayerWidgets[count]);
+        }
     }
     
     private void initPlayers() {
-    	mPlayerWidgets[0] = PlayerDisplay.getInstance(TAG_GAME_ENGINE, false);
-    	mPlayerWidgets[1] = PlayerDisplay.getInstance(TAG_GAME_ENGINE, true);
-    	mPlayerWidgets[2] = PlayerDisplay.getInstance(TAG_GAME_ENGINE, false);
-    	mPlayerWidgets[3] = PlayerDisplay.getInstance(TAG_GAME_ENGINE, true);
+    	mPlayerWidgets[0] = PlayerDisplay.getInstance(false);
+    	mPlayerWidgets[1] = PlayerDisplay.getInstance(true);
+    	mPlayerWidgets[2] = PlayerDisplay.getInstance(false);
+    	mPlayerWidgets[3] = PlayerDisplay.getInstance(true);
     	
     	getSupportFragmentManager().beginTransaction().replace(R.id.player0, mPlayerWidgets[0]).commit();
     	getSupportFragmentManager().beginTransaction().replace(R.id.player1, mPlayerWidgets[1]).commit();
@@ -112,7 +119,6 @@ public class CardTableActivity extends FragmentActivity {
         for (int count = 0; count < mPlayerWidgets.length; count++) {
         	mPlayerWidgets[count].setPlayer(players[count]);
         	mPlayerWidgets[count].setActive(false);
-        	mEngine.setPlayerDisplay(count, mPlayerWidgets[count]);
         }
     }
 }
