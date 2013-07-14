@@ -4,6 +4,7 @@ import java.awt.font.NumericShaper;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.randomsymphony.games.ochre.CardTableActivity;
 import com.randomsymphony.games.ochre.logic.GameState.Phase;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Play;
@@ -67,6 +68,7 @@ public class GameEngine extends Fragment implements StateListener {
     	mScoreBoard.setTeamOneName(players[0].getName() + " & " + players[2].getName());
     	mScoreBoard.setTeamTwoName(players[1].getName() + " & " + players[3].getName());
 		newRound();
+		((CardTableActivity) getActivity()).allowNewGame(false);
 	}
 	
 	public void newRound() {

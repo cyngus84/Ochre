@@ -12,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 
 public class TableDisplay extends Fragment {
 
@@ -25,7 +24,6 @@ public class TableDisplay extends Fragment {
 	private GameEngine mEngine;
 	private Button mTrumpCard;
 	private GameState mGameState;
-	private ImageView mTableFelt;
 	
 	/**
 	 * @param numberOfPlayers Note that this parameter is currently ignored by
@@ -60,18 +58,7 @@ public class TableDisplay extends Fragment {
 			Bundle savedInstanceState) {
 		mContent = inflater.inflate(R.layout.fragment_card_table, null);
 		initPlayedCards();
-		mTableFelt = (ImageView) mContent.findViewById(R.id.table_felt);
-		
-		mTableFelt.setOnClickListener(
-				new View.OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						v.setEnabled(false);
-						mEngine.startGame();
-					}
-				});
         mTrumpCard = (Button) mContent.findViewById(R.id.candidate_trump);
-
 		return mContent;
 	}
 
@@ -126,10 +113,6 @@ public class TableDisplay extends Fragment {
     	for (int ptr = 0; ptr < mPlayedCards.length; ptr++) {
     		mPlayedCards[ptr].setVisibility(View.INVISIBLE);
     	}
-    }
-    
-    public void enableStartButton() {
-    	mTableFelt.setEnabled(true);
     }
 	
     private void initPlayedCards() {

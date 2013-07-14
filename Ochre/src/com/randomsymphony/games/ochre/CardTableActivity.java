@@ -30,6 +30,7 @@ public class CardTableActivity extends FragmentActivity {
 	private TableDisplay mTableDisplay;
 	private TrumpDisplay mTrumpWidget;
 	private ScoreBoard mScoreBoard;
+	private Button mStart;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +42,21 @@ public class CardTableActivity extends FragmentActivity {
         initTableDisplay();
         initTrump();
         initPlayers();
+        mStart = (Button) findViewById(R.id.start);
+        mStart.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mEngine.startGame();
+			}
+		});
+    }
+    
+    /**
+     * Whether or not it is legal to stat a new game now
+     * @param allowed
+     */
+    public void allowNewGame(boolean allowed) {
+    	mStart.setEnabled(allowed);
     }
 
     private void initScoreBoard() {
