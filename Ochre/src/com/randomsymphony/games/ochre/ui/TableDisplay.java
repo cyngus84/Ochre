@@ -18,13 +18,7 @@ public class TableDisplay extends Fragment {
 	public static final String ARG_NUMBER_OF_PLAYER = "num_players";
 	public static final String ARG_GAME_ENGINE = "game_engine";
 	public static final String ARG_GAME_STATE = "game_state";
-	
-	private View mContent;
-	private Button[] mPlayedCards;
-	private GameEngine mEngine;
-	private Button mTrumpCard;
-	private GameState mGameState;
-	
+
 	/**
 	 * @param numberOfPlayers Note that this parameter is currently ignored by
 	 * the fragment. It may turn out not to be useful, if so, we'll remove later.
@@ -42,6 +36,12 @@ public class TableDisplay extends Fragment {
 		instance.setArguments(args);
 		return instance;
 	}
+	
+	private View mContent;
+	private Button[] mPlayedCards;
+	private GameEngine mEngine;
+	private Button mTrumpCard;
+	private GameState mGameState;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -121,5 +121,4 @@ public class TableDisplay extends Fragment {
     	mPlayedCards[2] = (Button) mContent.findViewById(R.id.player2_card);
     	mPlayedCards[3] = (Button) mContent.findViewById(R.id.player3_card);
     }
-	
 }

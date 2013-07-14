@@ -39,7 +39,6 @@ public class GameState extends Fragment {
 	private int[] mScores = new int[] {0, 0, 0, 0};
 	private PlayerFactory mPlayerSource;
 	private DeckOfCards mDeck;
-	private Card mCurrentTrump;
 	private ArrayList<Round> mRounds = new ArrayList<Round>();
 	private int mDealerOffset = -1;
 	private Phase mGamePhase = Phase.NONE;
@@ -116,6 +115,4 @@ public class GameState extends Fragment {
 			mPlayers[count] = mPlayerSource.createPlayer();
 		}
 	}
-	
-	
 }

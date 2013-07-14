@@ -1,7 +1,5 @@
 package com.randomsymphony.games.ochre.logic;
 
-import android.util.Log;
-
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Player;
 
@@ -13,7 +11,6 @@ public class GamePlayUtils {
 	 * Do not instantiate!
 	 */
 	private GamePlayUtils() {
-		
 	}
 	
 	public static void dealToPlayer(DeckOfCards cards, Player player) {
@@ -101,7 +98,6 @@ public class GamePlayUtils {
 					return true;
 				}
 			}
-			
 		}
 	}
 }

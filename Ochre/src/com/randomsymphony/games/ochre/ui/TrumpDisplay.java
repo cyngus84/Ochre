@@ -43,14 +43,6 @@ public class TrumpDisplay extends Fragment implements View.OnClickListener {
 		initView();
 		return mContent;
 	}
-	
-	private void initView() {
-		mSetTrump = (Button) mContent.findViewById(R.id.set_trump);
-		mSetTrump.setOnClickListener(this);
-		mPass = (Button) mContent.findViewById(R.id.pass);
-		mPass.setOnClickListener(this);
-		mAlone = (CheckBox) mContent.findViewById(R.id.go_alone);
-	}
 
 	@Override
 	public void onClick(View v) {
@@ -98,5 +90,13 @@ public class TrumpDisplay extends Fragment implements View.OnClickListener {
 	
 	public void reset() {
 		setToOrderUpMode();		
+	}
+
+	private void initView() {
+		mSetTrump = (Button) mContent.findViewById(R.id.set_trump);
+		mSetTrump.setOnClickListener(this);
+		mPass = (Button) mContent.findViewById(R.id.pass);
+		mPass.setOnClickListener(this);
+		mAlone = (CheckBox) mContent.findViewById(R.id.go_alone);
 	}
 }

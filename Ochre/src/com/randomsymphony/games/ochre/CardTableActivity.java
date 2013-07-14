@@ -1,10 +1,8 @@
 package com.randomsymphony.games.ochre;
 
 import com.randomsymphony.games.ochre.logic.GameEngine;
-import com.randomsymphony.games.ochre.logic.GamePlayUtils;
 import com.randomsymphony.games.ochre.logic.GameState;
 import com.randomsymphony.games.ochre.logic.PlayerFactory;
-import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
 import com.randomsymphony.games.ochre.ui.ScoreBoard;
@@ -14,11 +12,9 @@ import com.randomsymphony.games.ochre.R;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 
 public class CardTableActivity extends FragmentActivity {
 	
@@ -50,7 +46,14 @@ public class CardTableActivity extends FragmentActivity {
 			}
 		});
     }
-    
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.card_table, menu);
+        return true;
+    }
+
     /**
      * Whether or not it is legal to stat a new game now
      * @param allowed
@@ -83,13 +86,6 @@ public class CardTableActivity extends FragmentActivity {
     	getSupportFragmentManager().beginTransaction().replace(R.id.trump_controls, mTrumpWidget)
     	        .commit();
     	mEngine.setTrumpDisplay(mTrumpWidget);
-    }
-    
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.card_table, menu);
-        return true;
     }
     
     private void initGameEngine() {

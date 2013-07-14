@@ -2,8 +2,6 @@ package com.randomsymphony.games.ochre.model;
 
 import java.util.ArrayList;
 
-import android.util.Log;
-
 public class Player {
 
 	private String mName;

@@ -1,6 +1,5 @@
 package com.randomsymphony.games.ochre.model;
 
-import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
 

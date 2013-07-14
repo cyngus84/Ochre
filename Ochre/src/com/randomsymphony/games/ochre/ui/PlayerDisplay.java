@@ -1,7 +1,5 @@
 package com.randomsymphony.games.ochre.ui;
 
-import java.util.ArrayList;
-
 import com.randomsymphony.games.ochre.R;
 import com.randomsymphony.games.ochre.logic.GameEngine;
 import com.randomsymphony.games.ochre.logic.GameState;
@@ -19,7 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RadioButton;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class PlayerDisplay extends Fragment implements View.OnClickListener, StateListener {
@@ -42,6 +39,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		return display;
 	}
 	
+	private int LAYOUT_ID;
 	private Player mPlayer;
 	private TextView mPlayerLabel;
 	private Button[] mCards = new Button[6];
@@ -59,8 +57,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private boolean mRadiosPresent = false;
 	private TextView mTrickText;
 	private int mTrickCount = 0;
-	private int LAYOUT_ID;
 	private boolean mWideDisplay;
+	private GameState.Phase mPhase = GameState.Phase.NONE;
 	
 	public PlayerDisplay() {
 		
@@ -107,7 +105,6 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	@Override
 	public void onResume() {
 		super.onResume();
-		Log.d("JMATT", "Resuming.");
 		redraw();
 	}
 	
@@ -116,41 +113,6 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 			mExtraCardVisible = isVisible;
 		}
 		redraw();
-	}
-	
-	private void initViewReferences(View content) {
-		mPlayerLabel = (TextView) content.findViewById(R.id.player_name);
-		mCards[DISCARD_SLOT] = (Button) content.findViewById(R.id.extra_card);
-		mCards[0] = (Button) content.findViewById(R.id.card1);
-		mCards[1] = (Button) content.findViewById(R.id.card2);
-		mCards[2] = (Button) content.findViewById(R.id.card3);
-		mCards[3] = (Button) content.findViewById(R.id.card4);
-		mCards[4] = (Button) content.findViewById(R.id.card5);
-		
-		for (int ptr = 0; ptr < mCards.length; ptr++) {
-			mCards[ptr].setOnClickListener(this);
-		}
-		
-		mCardSelectors[0] = (RadioButton) content.findViewById(R.id.cardSelect1);
-		mCardSelectors[1] = (RadioButton) content.findViewById(R.id.cardSelect2);
-		mCardSelectors[2] = (RadioButton) content.findViewById(R.id.cardSelect3);
-		mCardSelectors[3] = (RadioButton) content.findViewById(R.id.cardSelect4);
-		mCardSelectors[4] = (RadioButton) content.findViewById(R.id.cardSelect5);
-		
-		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
-			mCardSelectors[ptr].setOnClickListener(this);
-		}
-		
-		mExtraCardSelector = (RadioButton) content.findViewById(R.id.extra_card_select);
-		mExtraCardSelector.setOnClickListener(this);
-		
-		mDiscard = (Button) mContent.findViewById(R.id.discard);
-		mDiscard.setOnClickListener(this);
-		
-		mShowHide = (Button) mContent.findViewById(R.id.show_hide);
-		mShowHide.setOnClickListener(this);
-		
-		mTrickText = (TextView) mContent.findViewById(R.id.trick_text);
 	}
 	
 	/**
@@ -342,6 +304,89 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		}
 	}
 	
+	@Override
+	public void onStateChange(Phase newPhase) {
+		mPhase = newPhase;
+		
+		switch (newPhase) {
+		    case PICK_TRUMP:
+			   setRadioVisibility(true);
+			   break;
+		    case NONE:
+		    case ORDER_UP:
+		    case PLAY:
+		    default:
+		    	setRadioVisibility(false);
+		    	break;
+		}
+		
+		// reset trick count
+		switch (newPhase) {
+		    case ORDER_UP:
+			    mTrickCount = 0;
+			    break;
+		}
+		
+		redraw();
+	}
+	
+	public Card getSelectedCard() {
+		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
+			if (mCardSelectors[ptr].isChecked()) {
+				return mPlayer.getCurrentCards()[ptr];
+			}
+		}
+		return null;
+	}
+	
+	public void showDiscardCard() {
+		setExtraCardVisibility(true);
+		setRadioVisibility(true);
+		redraw();
+		mDiscard.setEnabled(false);
+	}
+	
+	public void hideDiscardCard() {
+		setRadioVisibility(false);
+		mExtraCardVisible = false;
+		redraw();
+	}
+
+	private void initViewReferences(View content) {
+		mPlayerLabel = (TextView) content.findViewById(R.id.player_name);
+		mCards[DISCARD_SLOT] = (Button) content.findViewById(R.id.extra_card);
+		mCards[0] = (Button) content.findViewById(R.id.card1);
+		mCards[1] = (Button) content.findViewById(R.id.card2);
+		mCards[2] = (Button) content.findViewById(R.id.card3);
+		mCards[3] = (Button) content.findViewById(R.id.card4);
+		mCards[4] = (Button) content.findViewById(R.id.card5);
+		
+		for (int ptr = 0; ptr < mCards.length; ptr++) {
+			mCards[ptr].setOnClickListener(this);
+		}
+		
+		mCardSelectors[0] = (RadioButton) content.findViewById(R.id.cardSelect1);
+		mCardSelectors[1] = (RadioButton) content.findViewById(R.id.cardSelect2);
+		mCardSelectors[2] = (RadioButton) content.findViewById(R.id.cardSelect3);
+		mCardSelectors[3] = (RadioButton) content.findViewById(R.id.cardSelect4);
+		mCardSelectors[4] = (RadioButton) content.findViewById(R.id.cardSelect5);
+		
+		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
+			mCardSelectors[ptr].setOnClickListener(this);
+		}
+		
+		mExtraCardSelector = (RadioButton) content.findViewById(R.id.extra_card_select);
+		mExtraCardSelector.setOnClickListener(this);
+		
+		mDiscard = (Button) mContent.findViewById(R.id.discard);
+		mDiscard.setOnClickListener(this);
+		
+		mShowHide = (Button) mContent.findViewById(R.id.show_hide);
+		mShowHide.setOnClickListener(this);
+		
+		mTrickText = (TextView) mContent.findViewById(R.id.trick_text);
+	}
+	
 	private void discard() {
 		// find the selected card
 		int offset = -1;
@@ -380,56 +425,5 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 
 	private void setRadioVisibility(boolean present) {
 		mRadiosPresent = present;
-	}
-	
-	private GameState.Phase mPhase = GameState.Phase.NONE;
-	
-	@Override
-	public void onStateChange(Phase newPhase) {
-		mPhase = newPhase;
-		
-		switch (newPhase) {
-		    case PICK_TRUMP:
-			   setRadioVisibility(true);
-			   break;
-		    case NONE:
-		    case ORDER_UP:
-		    case PLAY:
-		    default:
-		    	setRadioVisibility(false);
-		    	break;
-		}
-		
-		// reset trick count
-		switch (newPhase) {
-		    case ORDER_UP:
-			    mTrickCount = 0;
-			    break;
-		}
-		
-		redraw();
-	}
-	
-	
-	public Card getSelectedCard() {
-		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
-			if (mCardSelectors[ptr].isChecked()) {
-				return mPlayer.getCurrentCards()[ptr];
-			}
-		}
-		return null;
-	}
-	
-	public void showDiscardCard() {
-		setExtraCardVisibility(true);
-		setRadioVisibility(true);
-		redraw();
-		mDiscard.setEnabled(false);
-	}
-	
-	public void hideDiscardCard() {
-		setRadioVisibility(false);
-		mExtraCardVisible = false;
-		redraw();
 	}
 }

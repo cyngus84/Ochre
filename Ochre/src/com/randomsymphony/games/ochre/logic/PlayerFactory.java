@@ -9,7 +9,7 @@ public class PlayerFactory {
 	
 	public PlayerFactory() {
 	}
-	
+
 	public Player createPlayer() {
 		mOffset++;
 		return new Player(NAMES[mOffset]);
