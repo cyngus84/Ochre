@@ -13,16 +13,10 @@ public class Round {
 	public int trumpPasses;
 	public HashMap<Player, Integer> mCapturedTricks = new HashMap<Player, Integer>();
 	
-	private static final int[] TRUMPS = new int[] {Card.SUIT_CLUBS, Card.SUIT_SPADES, Card.SUIT_DIAMONDS, Card.SUIT_HEARTS};
-	private static int sTrumpOffset = 0;
-	
 	public Round(Player dealer) {
 		totalPlays = 0;
 		tricks = new ArrayList<Play[]>();
 		alone = false;
-		// trump = TRUMPS[sTrumpOffset % TRUMPS.length];
-		// trump++;
-		// Log.d("JMATT", "Trump is: " + new Card(TRUMPS[sTrumpOffset], Card.VALUE_ACE).toString());
 		this.dealer = dealer;
 		trumpPasses = 0;
 	}
