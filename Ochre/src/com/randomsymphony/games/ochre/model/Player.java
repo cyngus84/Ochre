@@ -1,21 +1,28 @@
 package com.randomsymphony.games.ochre.model;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class Player {
 
 	private String mName;
 	private ArrayList<Card> mCards = new ArrayList<Card>();
+	private final UUID mInstanceId;
 	
 	public Player(String name) {
-		mName = name;
+		this(name, new Card[0]);
 	}
 	
 	public Player(String name, Card[] cards) {
-		this(name);
+		this(name, cards, UUID.randomUUID());
+	}
+	
+	public Player(String name, Card[] cards, UUID playerId) {
+		mName = name;
 		for (int ptr = 0, limit = cards.length; ptr < limit; ptr++) {
 			mCards.add(cards[ptr]);
 		}
+		mInstanceId = UUID.fromString(playerId.toString());
 	}
 
 	public String getName() {
@@ -50,5 +57,9 @@ public class Player {
 	
 	public void discardCard(Card card) {
 		mCards.remove(card);
+	}
+	
+	public String getId() {
+		return mInstanceId.toString();
 	}
 }

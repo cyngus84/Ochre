@@ -5,8 +5,11 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
+    <!-- We require 11 because we're using the built-in JSON parser.
+         We could switch to the more basic parser included in API level 1
+         or could use an external parsing library. Future work! -->
     <uses-sdk
-        android:minSdkVersion="9"
+        android:minSdkVersion="11"
         android:targetSdkVersion="17" />
 
     <application

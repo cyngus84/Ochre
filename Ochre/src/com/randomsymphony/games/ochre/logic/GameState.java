@@ -1,6 +1,7 @@
 package com.randomsymphony.games.ochre.logic;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Play;
@@ -12,6 +13,7 @@ import android.util.Log;
 
 public class GameState extends Fragment {
 
+	// TODO enums are inefficient, convert to static constants
 	public static enum Phase {
 		/**
 		 * State right after dealing, players can choose to order up the card
@@ -43,6 +45,7 @@ public class GameState extends Fragment {
 	private int mDealerOffset = -1;
 	private Phase mGamePhase = Phase.NONE;
 	private StateListener mStateListener;
+	private UUID mGameId;
 	
 	public GameState(PlayerFactory playerFactory) {
 		mPlayerSource = playerFactory;
@@ -108,6 +111,14 @@ public class GameState extends Fragment {
 			}
 		}
 		return -1;
+	}
+
+	public UUID getGameId() {
+		return mGameId;
+	}
+
+	public void setGameId(UUID gameId) {
+		mGameId = gameId;
 	}
 	
 	private void initPlayers() {

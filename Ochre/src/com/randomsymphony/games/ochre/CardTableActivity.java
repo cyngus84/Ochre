@@ -1,9 +1,18 @@
 package com.randomsymphony.games.ochre;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.UUID;
+
 import com.randomsymphony.games.ochre.logic.GameEngine;
 import com.randomsymphony.games.ochre.logic.GameState;
 import com.randomsymphony.games.ochre.logic.PlayerFactory;
 import com.randomsymphony.games.ochre.model.Player;
+import com.randomsymphony.games.ochre.transport.json.JsonConverterFactory;
+import com.randomsymphony.games.ochre.transport.json.PlayerConverter;
+import com.randomsymphony.games.ochre.transport.json.TestValues;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
 import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
@@ -12,6 +21,8 @@ import com.randomsymphony.games.ochre.R;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.JsonReader;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -48,6 +59,29 @@ public class CardTableActivity extends FragmentActivity {
 				mEngine.startGame();
 			}
 		});
+        
+        testConverter();
+    }
+
+    private void testConverter() {
+    	ByteArrayInputStream input = new ByteArrayInputStream(
+    			TestValues.PLAYER_NO_CARDS.getBytes());
+    	JsonReader reader = new JsonReader(new InputStreamReader(input));
+    	try {
+    		Log.d("JMATT", "First token type: " + reader.peek());
+    		// start the outer open object
+    		reader.beginObject();
+    		String propName = reader.nextName();
+    		Log.d("JMATT", "Property name is: " + propName);
+    		PlayerConverter converter = (PlayerConverter)
+    				new JsonConverterFactory().getConverter(
+    						JsonConverterFactory.TYPE_PLAYER);
+    		Player test = converter.readPlayer(reader);
+    		Log.d("JMATT", "Test player: " + test.getId() + " -- " + 
+    				test.getName());
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
     }
 
     @Override
@@ -74,6 +108,7 @@ public class CardTableActivity extends FragmentActivity {
     private void initGameState() {
         mGameState = new GameState(new PlayerFactory());
         mGameState.setRetainInstance(true);
+        mGameState.setGameId(UUID.randomUUID());
         getSupportFragmentManager().beginTransaction().add(mGameState, TAG_GAME_STATE).commit();
     }
     
