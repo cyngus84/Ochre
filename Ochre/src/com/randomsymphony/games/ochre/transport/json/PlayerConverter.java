@@ -53,7 +53,7 @@ public class PlayerConverter {
 					cards = readCardArray(source);
 				} else {
 					throw new IllegalArgumentException("Unknown property '" +
-					nextProp + "' in player object.");
+					        nextProp + "' in player object.");
 				}
 			}
 			source.endObject();

@@ -65,7 +65,7 @@ public class CardTableActivity extends FragmentActivity {
 
     private void testConverter() {
     	ByteArrayInputStream input = new ByteArrayInputStream(
-    			TestValues.PLAYER_NO_CARDS.getBytes());
+    			TestValues.PLAYER_WITH_CARDS.getBytes());
     	JsonReader reader = new JsonReader(new InputStreamReader(input));
     	try {
     		Log.d("JMATT", "First token type: " + reader.peek());
