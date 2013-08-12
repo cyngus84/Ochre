@@ -6,6 +6,7 @@ import com.randomsymphony.games.ochre.model.Card;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
+import android.util.JsonWriter;
 import android.util.Log;
 
 public class CardConverter {
@@ -13,6 +14,8 @@ public class CardConverter {
 	private static final String TAG_SUIT = "suit";
 	private static final String TAG_VALUE = "value";
 	private static final String TAG_VISIBLE = "visible";
+	private static final String TAG_VERSION = "version";
+	private static final int CURRENT_VERSION = 1;
 	
 	public CardConverter(ConverterFactory converters) {
 		
@@ -22,6 +25,7 @@ public class CardConverter {
 		int value = -1;
 		int suit = -1;
 		boolean visible = false;
+		int version = 0;
 		
 		Card card = null;
 		
@@ -32,8 +36,16 @@ public class CardConverter {
 						"object, instead got: " + nextToken.toString());
 			}
 			source.beginObject();
+			String nextProp = source.nextName();
+			if (TAG_VERSION.equals(nextProp)) {
+				version = source.nextInt();
+			} else {
+				throw new IllegalArgumentException("Card is malformed, " +
+						"record must begin with a version number.");
+			}
+			
 			while(source.peek() != JsonToken.END_OBJECT) {
-				String nextProp = source.nextName();
+				nextProp = source.nextName();
 				if (TAG_SUIT.endsWith(nextProp)) {
 					suit = source.nextInt();
 				} else if (TAG_VALUE.equals(nextProp)) {
@@ -51,6 +63,11 @@ public class CardConverter {
 			return null;
 		}
 		
+		if (version != CURRENT_VERSION) {
+			throw new IllegalArgumentException("Version " + version + " is " +
+					"not supported by this inflater.");
+		}
+		
 		// validate that required properties were found, be lenient about
 		// presence of the visibility tag, card visibility is mostly going
 		// to be controlled by local logic
@@ -60,5 +77,14 @@ public class CardConverter {
 		}
 		card = new Card(suit, value, visible);
 		return card;
+	}
+	
+	public void writeCard(JsonWriter writer, Card card) throws IOException {
+		writer.beginObject();
+		writer.name(TAG_VERSION).value(CURRENT_VERSION);
+		writer.name(TAG_SUIT).value(card.getSuit());
+		writer.name(TAG_VALUE).value(card.getValue());
+		writer.name(TAG_VISIBLE).value(card.isVisible());
+		writer.endObject();
 	}
 }

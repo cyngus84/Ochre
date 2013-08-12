@@ -1,9 +1,12 @@
 package com.randomsymphony.games.ochre;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.Writer;
 import java.util.UUID;
 
 import com.randomsymphony.games.ochre.logic.GameEngine;
@@ -22,6 +25,7 @@ import com.randomsymphony.games.ochre.R;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.JsonReader;
+import android.util.JsonWriter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -57,12 +61,32 @@ public class CardTableActivity extends FragmentActivity {
 			@Override
 			public void onClick(View v) {
 				mEngine.startGame();
+				testEncoder();
 			}
 		});
         
         testConverter();
     }
 
+    private void testEncoder() {
+    	ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
+		JsonWriter writer = new JsonWriter(new OutputStreamWriter(baos));
+		PlayerConverter converter = (PlayerConverter)
+				new JsonConverterFactory().getConverter(
+						JsonConverterFactory.TYPE_PLAYER);
+		try {
+			converter.writePlayer(writer, mGameState.getPlayers()[0]);
+			writer.flush();
+			Log.d("JMATT", "Player is: " + mGameState.getPlayers()[0].getName() + 
+					" bytes written: " + baos.size());
+			baos.close();
+			Log.d("JMATT", baos.toString("UTF-8"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
     private void testConverter() {
     	ByteArrayInputStream input = new ByteArrayInputStream(
     			TestValues.PLAYER_WITH_CARDS.getBytes());

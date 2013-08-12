@@ -9,6 +9,7 @@ import com.randomsymphony.games.ochre.model.Player;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
+import android.util.JsonWriter;
 
 public class PlayerConverter {
 
@@ -16,6 +17,8 @@ public class PlayerConverter {
 	private static final String TAG_NAME = "name";
 	private static final String TAG_ID = "id";
 	private static final String TAG_CARDS = "cards";
+	private static final String TAG_VERSION = "version";
+	private static final int CURRENT_VERSION = 1;
 	
 	/**
 	 * Gets converters for other types
@@ -23,6 +26,28 @@ public class PlayerConverter {
 	 */
 	public PlayerConverter(ConverterFactory converterFactory) {
 		mFactory = converterFactory;
+	}
+	
+	public void writePlayer(JsonWriter writer, Player player) 
+			throws IOException {
+		writer.beginObject();
+
+		writer.name(TAG_VERSION).value(CURRENT_VERSION);
+		writer.name(TAG_NAME).value(player.getName());
+		writer.name(TAG_ID).value(player.getId());
+
+		writer.name(TAG_CARDS);
+		writer.beginArray();
+		CardConverter cardWriter = (CardConverter) mFactory.getConverter(
+				JsonConverterFactory.TYPE_CARD);
+
+		Card[] hand = player.getCurrentCards();
+		for (int ptr = 0; ptr < hand.length; ptr++) {
+			cardWriter.writeCard(writer, hand[ptr]);
+		}
+		writer.endArray();
+
+		writer.endObject();
 	}
 	
 	/**
@@ -34,6 +59,7 @@ public class PlayerConverter {
 		String playerName = null;
 		UUID playerId = null;
 		ArrayList<Card> cards = null;
+		int version = 0;
 		
 		try {
 			JsonToken nextToken = source.peek();
@@ -43,8 +69,16 @@ public class PlayerConverter {
 			}
 			source.beginObject();
 			
+			String nextProp = source.nextName();
+			if (TAG_VERSION.equals(nextProp)) {
+				version = source.nextInt();
+			} else {
+				throw new IllegalArgumentException("Player is malformed, " +
+						"record must begin with a version number");
+			}
+			
 			while(source.peek() != JsonToken.END_OBJECT) {
-				String nextProp = source.nextName();
+				nextProp = source.nextName();
 				if (TAG_NAME.equals(nextProp)) {
 					playerName = source.nextString();
 				} else if (TAG_ID.equals(nextProp)) {
@@ -61,6 +95,11 @@ public class PlayerConverter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
+		}
+		
+		if (CURRENT_VERSION != version) {
+			throw new IllegalArgumentException("Version " + version + " is " +
+					"not supported by this inflater.");
 		}
 		
 		Player player;
