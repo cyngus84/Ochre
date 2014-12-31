@@ -60,4 +60,12 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:text="@string/start" />
+    <Button
+        android:id="@+id/test"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/start"
+        android:layout_alignTop="@id/start"
+        android:text="@string/test" />
 </RelativeLayout>

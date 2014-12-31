@@ -3,15 +3,37 @@ package com.randomsymphony.games.ochre.model;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.randomsymphony.games.ochre.logic.GameState;
+
+/**
+ * @author cyngus
+ * A Round is composed of a series of tricks and metadata about that series
+ * of tricks such as who set trump, who dealt, whether the trump setter (the
+ * "maker") is going alone, etc.
+ */
 public class Round {
 	public Card trump;
 	public ArrayList<Play[]> tricks;
 	public boolean alone;
 	public final Player dealer;
 	public Player maker;
+	/**
+	 * Tracks the total number of plays in this round. This is needed mainly
+	 * because whenever a new trick starts we allocate a new array containing
+	 * enough space to hold the entire trick.
+	 */
 	public int totalPlays;
+	/**
+	 * During the {@link GameState.Phase#ORDER_UP} and
+	 * {@link GameState.Phase#PICK_TRUMP} phases this tracks the number of
+	 * players that have passed on setting trump. This allows us to track
+	 * certain game state transitions.
+	 */
 	public int trumpPasses;
-	public HashMap<Player, Integer> mCapturedTricks = new HashMap<Player, Integer>();
+	/**
+	 * The number of tricks that a given player has taken.
+	 */
+	public HashMap<Player, Integer> mCapturedTrickCount = new HashMap<Player, Integer>();
 	
 	public Round(Player dealer) {
 		totalPlays = 0;
@@ -90,12 +112,12 @@ public class Round {
 	 * @return The total number of tricks captured by this player
 	 */
 	public int addCapturedTrick(Player player) {
-		if (mCapturedTricks.containsKey(player)) {
-			mCapturedTricks.put(player, mCapturedTricks.get(player) + 1);
+		if (mCapturedTrickCount.containsKey(player)) {
+			mCapturedTrickCount.put(player, mCapturedTrickCount.get(player) + 1);
 		} else {
-			mCapturedTricks.put(player, 1);
+			mCapturedTrickCount.put(player, 1);
 		}
 		
-		return mCapturedTricks.get(player);
+		return mCapturedTrickCount.get(player);
 	}
 }

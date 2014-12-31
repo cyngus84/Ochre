@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
 import java.util.UUID;
 
@@ -13,8 +14,10 @@ import com.randomsymphony.games.ochre.logic.GameEngine;
 import com.randomsymphony.games.ochre.logic.GameState;
 import com.randomsymphony.games.ochre.logic.PlayerFactory;
 import com.randomsymphony.games.ochre.model.Player;
+import com.randomsymphony.games.ochre.model.Round;
 import com.randomsymphony.games.ochre.transport.json.JsonConverterFactory;
 import com.randomsymphony.games.ochre.transport.json.PlayerConverter;
+import com.randomsymphony.games.ochre.transport.json.RoundConverter;
 import com.randomsymphony.games.ochre.transport.json.TestValues;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
 import com.randomsymphony.games.ochre.ui.ScoreBoard;
@@ -64,8 +67,45 @@ public class CardTableActivity extends FragmentActivity {
 				testEncoder();
 			}
 		});
-        
+        Button testButton = (Button) findViewById(R.id.test);
+        testButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// encode, decode, and encode again, if they look the same, we win!
+				String stateEncoded = testRoundEncoder(mGameState.getCurrentRound());
+				Round decoded = testRoundDecoder(stateEncoded, mGameState.getPlayers());
+				testRoundEncoder(decoded);
+			}
+		});
         testConverter();
+    }
+    
+    private Round testRoundDecoder(String state, Player[] players) {
+		RoundConverter converter = 
+				(RoundConverter) new JsonConverterFactory().getConverter(
+						JsonConverterFactory.TYPE_ROUND);
+		Round decoded = converter.readRound(new JsonReader(new StringReader(state)), players);
+		return decoded;
+    }
+    
+    private String testRoundEncoder(Round round) {
+    	ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
+		JsonWriter writer = new JsonWriter(new OutputStreamWriter(baos));
+		RoundConverter converter = 
+				(RoundConverter) new JsonConverterFactory().getConverter(
+						JsonConverterFactory.TYPE_ROUND);
+		try { 
+			converter.writeRound(writer, round);
+			writer.flush();
+			Log.d("JMATT", "Wrote current round, bytes written: " + baos.size());
+			String encoded = baos.toString("UTF-8");
+			Log.d("JMATT", encoded);
+			return encoded;
+		} catch (IOException e) {
+			
+		}
+		return null;
     }
 
     private void testEncoder() {

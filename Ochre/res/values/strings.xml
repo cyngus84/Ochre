@@ -12,4 +12,5 @@
     <string name="show_cards">Show cards</string>
     <string name="hide_cards">Hide cards</string>
     <string name="start">Start</string>
+    <string name="test">Test</string>
 </resources>

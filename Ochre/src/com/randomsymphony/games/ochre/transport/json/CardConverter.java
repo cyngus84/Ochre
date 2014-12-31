@@ -46,7 +46,7 @@ public class CardConverter {
 			
 			while(source.peek() != JsonToken.END_OBJECT) {
 				nextProp = source.nextName();
-				if (TAG_SUIT.endsWith(nextProp)) {
+				if (TAG_SUIT.equals(nextProp)) {
 					suit = source.nextInt();
 				} else if (TAG_VALUE.equals(nextProp)) {
 					value = source.nextInt();

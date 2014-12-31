@@ -79,6 +79,7 @@ public class PlayConverter {
 							" when reading play.");
 				}
 			}
+			reader.endObject();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
