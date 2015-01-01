@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import com.randomsymphony.games.ochre.logic.GameState;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Player;
 

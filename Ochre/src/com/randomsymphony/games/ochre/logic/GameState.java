@@ -60,22 +60,40 @@ public class GameState extends Fragment {
 	public DeckOfCards getDeck() {
 		return mDeck;
 	}
-	
-	public Round createNewRound(Player dealer) {
-		Log.d("JMATT", "Dealer for this round is: " + dealer.getName());
-		mRounds.add(new Round(dealer));
-		return getCurrentRound();
+
+	/**
+	 * Create a new round, assigning the next player as the dealer.
+	 * @return
+	 */
+	public Round createNewRound() {
+		// create a new round, assigning the next dealer as the dealer
+		int newDealer = mDealerOffset + 1;
+		Round newRound = new Round(mPlayers[newDealer % mPlayers.length]);
+		// set the default maker to the player to the right of the dealer
+		newRound.maker = mPlayers[(newDealer + 1) % mPlayers.length];
+		addRound(newRound);
+		return newRound;
 	}
 	
-	public Round createNewRound() {
+	/**
+	 * Add a round to the game state. Note that this will advance the dealer by
+	 * one player.
+	 * @param round The round to add
+	 */
+	public void addRound(Round round) {
 		mDealerOffset++;
-		Round round = createNewRound(mPlayers[mDealerOffset % mPlayers.length]);
-		round.maker = mPlayers[(mDealerOffset + 1) % mPlayers.length];
-		return round;
+		Log.d("JMATT", "Dealer for this round is: " + round.dealer.getName());
+		mRounds.add(round);
 	}
 	
 	public Round getCurrentRound() {
 		return mRounds.get(mRounds.size() - 1);
+	}
+	
+	public Round[] getRounds() {
+		Round[] rounds = new Round[mRounds.size()];
+		mRounds.toArray(rounds);
+		return rounds;
 	}
 	
 	public Phase getGamePhase() {
@@ -96,7 +114,7 @@ public class GameState extends Fragment {
 	public void addPoints(Player player, int numPoints) {
 		Log.d("JMATT", "Adding " + numPoints + " to " + player.getName() + "'s team");
 		for (int ptr = 0; ptr < mScores.length; ptr++) {
-			if (player == mPlayers[ptr]) {
+			if (player.getId().equals(mPlayers[ptr].getId())) {
 				mScores[ptr] += numPoints;
 				Log.d("JMATT", "Total points: " + mScores[ptr]);
 				break;
@@ -106,7 +124,7 @@ public class GameState extends Fragment {
 	
 	public int getPointsForPlayer(Player player) {
 		for (int ptr = 0; ptr < mScores.length; ptr++) {
-			if (player == mPlayers[ptr]) {
+			if (player.getId().equals(mPlayers[ptr].getId())) {
 				return mScores[ptr];
 			}
 		}

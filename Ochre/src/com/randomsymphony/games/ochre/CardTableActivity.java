@@ -15,6 +15,7 @@ import com.randomsymphony.games.ochre.logic.GameState;
 import com.randomsymphony.games.ochre.logic.PlayerFactory;
 import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.model.Round;
+import com.randomsymphony.games.ochre.transport.json.GameStateConverter;
 import com.randomsymphony.games.ochre.transport.json.JsonConverterFactory;
 import com.randomsymphony.games.ochre.transport.json.PlayerConverter;
 import com.randomsymphony.games.ochre.transport.json.RoundConverter;
@@ -73,12 +74,42 @@ public class CardTableActivity extends FragmentActivity {
 			@Override
 			public void onClick(View v) {
 				// encode, decode, and encode again, if they look the same, we win!
-				String stateEncoded = testRoundEncoder(mGameState.getCurrentRound());
-				Round decoded = testRoundDecoder(stateEncoded, mGameState.getPlayers());
-				testRoundEncoder(decoded);
+//				String stateEncoded = testRoundEncoder(mGameState.getCurrentRound());
+//				Round decoded = testRoundDecoder(stateEncoded, mGameState.getPlayers());
+//				testRoundEncoder(decoded);
+				String gameState = testGameStateEncoder(mGameState);
+				GameState decoded = testGameStateDecoder(gameState);
+				testGameStateEncoder(decoded);
 			}
 		});
         testConverter();
+    }
+    
+    private String testGameStateEncoder(GameState state) {
+    	GameStateConverter converter = 
+    			(GameStateConverter) new JsonConverterFactory().getConverter(
+    					JsonConverterFactory.TYPE_GAME_STATE);
+    	ByteArrayOutputStream baos = new ByteArrayOutputStream(2048);
+		JsonWriter writer = new JsonWriter(new OutputStreamWriter(baos));
+		
+		try {
+			converter.writeGameState(writer, state);
+			writer.flush();
+			Log.d("JMATT", "Wrote current round, bytes written: " + baos.size());
+			String encoded = baos.toString("UTF-8");
+			Log.d("JMATT", encoded);
+			return encoded;
+		} catch (IOException e) {
+			return null;
+		}
+    }
+    
+    private GameState testGameStateDecoder(String state) {
+    	GameStateConverter converter = 
+    			(GameStateConverter) new JsonConverterFactory().getConverter(
+    					JsonConverterFactory.TYPE_GAME_STATE);
+    	GameState decoded = converter.readGameState(new JsonReader(new StringReader(state)));
+    	return decoded;
     }
     
     private Round testRoundDecoder(String state, Player[] players) {
