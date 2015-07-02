@@ -201,7 +201,8 @@ public class CardTableActivity extends FragmentActivity {
     }
     
     private void initGameState() {
-        mGameState = new GameState(new PlayerFactory());
+        mGameState = new GameState();
+		mGameState.setPlayerFactory(new PlayerFactory());
         mGameState.setRetainInstance(true);
         mGameState.setGameId(UUID.randomUUID());
         getSupportFragmentManager().beginTransaction().add(mGameState, TAG_GAME_STATE).commit();

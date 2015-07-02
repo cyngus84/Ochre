@@ -154,7 +154,8 @@ public class GameStateConverter {
 		
 		// put the players into a player factory
 		PlayerListFactory playerFactory = new PlayerListFactory(players);
-		gameState = new GameState(playerFactory);
+		gameState = new GameState();
+		gameState.setPlayerFactory(playerFactory);
 		gameState.setGamePhase(phase);
 
 		// add the game rounds
