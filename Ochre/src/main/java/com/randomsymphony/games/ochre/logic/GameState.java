@@ -46,12 +46,16 @@ public class GameState extends Fragment {
 	private Phase mGamePhase = Phase.NONE;
 	private StateListener mStateListener;
 	private UUID mGameId;
-	
-	public GameState(PlayerFactory playerFactory) {
-		mPlayerSource = playerFactory;
+
+	public GameState() {
+        super();
 		initPlayers();
 		mDeck = new DeckOfCards();
 	}
+
+    public void setPlayerFactory(PlayerFactory source) {
+        mPlayerSource = source;
+    }
 
 	public Player[] getPlayers() {
 		return new Player[] {mPlayers[0], mPlayers[1], mPlayers[2], mPlayers[3]};
