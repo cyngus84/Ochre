@@ -68,7 +68,10 @@ public class GameEngine extends Fragment implements StateListener {
 		mCardTable = (TableDisplay) getFragmentManager().findFragmentByTag(
 				args.getString(TAG_TABLE_DISPLAY));
 	}
-	
+
+
+
+
 	public void registerStateListener(StateListener listener) {
 		mStateListeners.add(listener);
 	}
@@ -89,6 +92,45 @@ public class GameEngine extends Fragment implements StateListener {
 	public void setGameState(GameState state) {
 		mState = state;
 		mState.setPhaseListener(this);
+
+        // configure trump display
+        switch (mState.getGamePhase()) {
+            case PICK_TRUMP:
+                mTrumpDisplay.setToPickMode();
+                break;
+            case ORDER_UP:
+                mTrumpDisplay.setToOrderUpMode();
+                break;
+            case DEALER_DISCARD:
+            case PLAY:
+                mTrumpDisplay.setToPlayMode();
+                break;
+            default:
+                Log.w("JMATT", "Unknown game phase, " +
+                        "unable to properly set trump display.");
+        }
+        Round activeRound = mState.getCurrentRound();
+
+        if (activeRound != null) {
+            Card currentTrump = activeRound.trump;
+//            mTrumpDisplay.set
+        }
+
+
+        // configure score player scores and captured trick counts
+
+
+        // configure player displays by setting the Player on the player display,
+        // redraw should be automatic
+
+
+        // configure score board
+
+
+        // play cards on the table display
+
+
+
 	}
 	
 	public void setTrumpDisplay(TrumpDisplay display) {
@@ -136,31 +178,30 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 	
 	public void playCard(Player player, Card card) {
-		Round currRound = mState.getCurrentRound();
-		currRound.addPlay(new Play(player, card));
+		Round currentRound = mState.getCurrentRound();
+		currentRound.addPlay(new Play(player, card));
 		Log.d("JMATT", player.getName() + " played " + card.toString());
 
 		player.discardCard(card);
 		// this is wasteful, would be better to just redraw one player
 		redrawAllPlayers();
 		
-		if (currRound.totalPlays % currRound.getActivePlayers() == 1) {
+		if (currentRound.totalPlays % currentRound.getActivePlayers() == 1) {
 			mCardTable.clearPlayedCards();
 		}
 		
 		mCardTable.playCard(card, player);
 		
 		//oops, need to add the card first. this logic is a little wrong
-		
-		if (mState.getCurrentRound().totalPlays > 0 && 
-				mState.getCurrentRound().isCurrentTrickComplete()) {
-			Play winningPlay = scoreTrick(currRound.getLastCompletedTrick(),
-					currRound.trump.getSuit());
-			int totalTricks = currRound.addCapturedTrick(winningPlay.player);
+
+		if (currentRound.totalPlays > 0 && currentRound.isCurrentTrickComplete()) {
+			Play winningPlay = scoreTrick(currentRound.getLastCompletedTrick(),
+					currentRound.trump.getSuit());
+			int totalTricks = currentRound.addCapturedTrick(winningPlay.player);
 			getPlayerDisplay(winningPlay.player).setTrickCount(totalTricks);
 			Log.d("JMATT", "And the winner is: " + winningPlay.card.toString());
 
-			if (currRound.totalPlays == currRound.getActivePlayers() * NUMBER_OF_TRICKS) {
+			if (currentRound.totalPlays == currentRound.getActivePlayers() * NUMBER_OF_TRICKS) {
 				scoreRound();
 				// time for a new round
 				newRound();
@@ -168,7 +209,7 @@ public class GameEngine extends Fragment implements StateListener {
 				Log.d("JMATT", "Current trick is complete, starting new one.");
 				// TODO we should actually only do this after trump is set and the
 				// maker decides to go alone or not
-				currRound.tricks.add(new Play[currRound.getActivePlayers()]);
+				currentRound.tricks.add(new Play[currentRound.getActivePlayers()]);
 			}
 		}
 		

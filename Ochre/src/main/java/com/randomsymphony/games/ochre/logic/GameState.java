@@ -3,8 +3,6 @@ package com.randomsymphony.games.ochre.logic;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import com.randomsymphony.games.ochre.model.Card;
-import com.randomsymphony.games.ochre.model.Play;
 import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.model.Round;
 
@@ -14,7 +12,7 @@ import android.util.Log;
 public class GameState extends Fragment {
 
 	// TODO enums are inefficient, convert to static constants
-	public static enum Phase {
+	public enum Phase {
 		/**
 		 * State right after dealing, players can choose to order up the card
 		 * in the middle of the table and thus set trump.
@@ -49,12 +47,12 @@ public class GameState extends Fragment {
 
 	public GameState() {
         super();
-		initPlayers();
 		mDeck = new DeckOfCards();
 	}
 
     public void setPlayerFactory(PlayerFactory source) {
         mPlayerSource = source;
+        initPlayers();
     }
 
 	public Player[] getPlayers() {
@@ -91,7 +89,8 @@ public class GameState extends Fragment {
 	}
 	
 	public Round getCurrentRound() {
-		return mRounds.get(mRounds.size() - 1);
+        int roundCount = mRounds.size();
+		return roundCount == 0 ? null : mRounds.get(mRounds.size() - 1);
 	}
 	
 	public Round[] getRounds() {

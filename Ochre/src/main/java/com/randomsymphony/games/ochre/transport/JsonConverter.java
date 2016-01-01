@@ -1,8 +1,12 @@
 package com.randomsymphony.games.ochre.transport;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 import com.randomsymphony.games.ochre.logic.GameState;
+import com.randomsymphony.games.ochre.transport.json.GameStateConverter;
+import com.randomsymphony.games.ochre.transport.json.JsonConverterFactory;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -25,10 +29,16 @@ public class JsonConverter implements
 	
 	@Override
 	public GameState inflate(JsonReader source) {
-		return null;
+		return new GameStateConverter(new JsonConverterFactory()).readGameState(source);
 	}
 
 	@Override
 	public void deflateState(GameState state, OutputStream output) {
+		JsonWriter writer = new JsonWriter(new OutputStreamWriter(output));
+		try {
+			new GameStateConverter(new JsonConverterFactory()).writeGameState(writer, state);
+		} catch (IOException e) {
+
+		}
 	}
 }

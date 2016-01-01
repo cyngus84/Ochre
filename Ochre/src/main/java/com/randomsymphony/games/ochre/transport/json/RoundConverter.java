@@ -270,6 +270,10 @@ public class RoundConverter {
 	 */
 	private void fixUpLastTrick(Round round) {
 		Play[] currentTrick = round.getCurrentTrick();
+		if (currentTrick == null) {
+            Log.d("JMATT", "No current round, skipping fix up");
+            return;
+        }
 		if (currentTrick.length != round.getActivePlayers()) {
 			// first remove the current trick
 			round.tricks.remove(round.tricks.size() - 1);
