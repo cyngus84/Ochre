@@ -21,7 +21,7 @@ public class TableDisplay extends Fragment {
 	/**
 	 * @param numberOfPlayers Note that this parameter is currently ignored by
 	 * the fragment. It may turn out not to be useful, if so, we'll remove later.
-	 * @param gameEngineTag The tag that the {@link GameEngine} can be found at.
+	 * @param gameStateTag The tag that the {@link GameEngine} can be found at.
 	 * @return
 	 */
 	public static TableDisplay getInstance(int numberOfPlayers, String gameStateTag) {
@@ -59,6 +59,8 @@ public class TableDisplay extends Fragment {
     public void playCard(Card card, Player player) {
     	Player[] players = mGameState.getPlayers();
     	for (int ptr = 0; ptr < players.length; ptr++) {
+            // TODO maybe this should be comparing IDs instead of object
+            // equality
     		if (players[ptr] == player) {
     			Button playedCard = mPlayedCards[ptr];
     			Card.formatButtonAsCard(playedCard, card, getResources());
@@ -108,6 +110,10 @@ public class TableDisplay extends Fragment {
     		mPlayedCards[ptr].setVisibility(View.INVISIBLE);
     	}
     }
+
+	public void setGameState(GameState state) {
+		mGameState = state;
+	}
 	
     private void initPlayedCards() {
     	mPlayedCards[0] = (Button) mContent.findViewById(R.id.player0_card);

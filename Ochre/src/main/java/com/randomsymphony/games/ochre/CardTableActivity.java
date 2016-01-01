@@ -2,6 +2,9 @@ package com.randomsymphony.games.ochre;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -42,14 +45,16 @@ public class CardTableActivity extends FragmentActivity {
     private static final String TAG_TRUMP_DISPLAY = "com.randomsymphony.games.ochre.TRUMP_DISPLAY";
     private static final String TAG_SCORE_BOARD = "com.randomsymphony.games.ochre.SCORE_DISPLAY";
     private static final String TAG_TABLE_DISPLAY = "com.randomsymphony.games.ochre.TABLE_DISPLAY";
-	private PlayerDisplay[] mPlayerWidgets = new PlayerDisplay[4];
+	private static final File FILE_STATE_SOURCE = new File("/sdcard/ochre/state.txt");
+
+    private PlayerDisplay[] mPlayerWidgets = new PlayerDisplay[4];
 	private GameState mGameState;
 	private GameEngine mEngine;
 	private TableDisplay mTableDisplay;
 	private TrumpDisplay mTrumpWidget;
 	private ScoreBoard mScoreBoard;
 	private Button mStart;
-	
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,13 +82,46 @@ public class CardTableActivity extends FragmentActivity {
 //				String stateEncoded = testRoundEncoder(mGameState.getCurrentRound());
 //				Round decoded = testRoundDecoder(stateEncoded, mGameState.getPlayers());
 //				testRoundEncoder(decoded);
-				String gameState = testGameStateEncoder(mGameState);
-				GameState decoded = testGameStateDecoder(gameState);
-				testGameStateEncoder(decoded);
+
+
+//				testGameStateEncoder(mGameState);
+
+                GameState newState = readGameStateFromFileTest();
+                mEngine.setGameState(newState);
+
 			}
 		});
         testConverter();
     }
+
+    private void gameStateTest() {
+        String gameState = testGameStateEncoder(mGameState);
+        GameState decoded = testGameStateDecoder(gameState);
+        testGameStateEncoder(decoded);
+    }
+
+    private GameState readGameStateFromFileTest() {
+        try {
+            FileInputStream fileInput = new FileInputStream(FILE_STATE_SOURCE);
+            GameState decoded = fromReader(new InputStreamReader(fileInput));
+            fileInput.close();
+            return decoded;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private GameState fromReader(Reader reader) {
+        JsonReader jsonReader = new JsonReader(reader);
+        GameStateConverter converter =
+                (GameStateConverter) new JsonConverterFactory().getConverter(
+                        JsonConverterFactory.TYPE_GAME_STATE);
+        return converter.readGameState(jsonReader);
+    }
+
     
     private String testGameStateEncoder(GameState state) {
     	GameStateConverter converter = 

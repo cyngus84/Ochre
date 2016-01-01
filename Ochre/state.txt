@@ -1,0 +1,272 @@
+{
+  "version": 1,
+  "game_players": [
+    {
+      "version": 1,
+      "name": "Bob",
+      "id": "f9de7c08-479b-42ad-a844-9b820054d40b",
+      "cards": [
+        {
+          "version": 1,
+          "suit": 1,
+          "value": 4,
+          "visible": false
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "name": "Agnes",
+      "id": "b562d436-6234-4851-8dd5-ec02362bf256",
+      "cards": [
+        {
+          "version": 1,
+          "suit": 1,
+          "value": 3,
+          "visible": false
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "name": "Lucy",
+      "id": "a4db0ce2-9571-4048-ae0c-43b7957468d1",
+      "cards": [
+        {
+          "version": 1,
+          "suit": 0,
+          "value": 2,
+          "visible": false
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "name": "George",
+      "id": "e0712d26-dbd4-4a4b-80b9-58f0d7c86561",
+      "cards": [
+        {
+          "version": 1,
+          "suit": 3,
+          "value": 5,
+          "visible": false
+        }
+      ]
+    }
+  ],
+  "player_scores": [
+    "f9de7c08-479b-42ad-a844-9b820054d40b",
+    0,
+    "b562d436-6234-4851-8dd5-ec02362bf256",
+    0,
+    "a4db0ce2-9571-4048-ae0c-43b7957468d1",
+    0,
+    "e0712d26-dbd4-4a4b-80b9-58f0d7c86561",
+    0
+  ],
+  "game_rounds": [
+    {
+      "version": 1,
+      "trump_suit": {
+        "version": 1,
+        "suit": 1,
+        "value": 5,
+        "visible": false
+      },
+      "played_tricks": [
+        [
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 1,
+              "value": 2,
+              "visible": false
+            },
+            "player_id": "b562d436-6234-4851-8dd5-ec02362bf256"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 2,
+              "value": 2,
+              "visible": false
+            },
+            "player_id": "a4db0ce2-9571-4048-ae0c-43b7957468d1"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 0,
+              "value": 3,
+              "visible": false
+            },
+            "player_id": "e0712d26-dbd4-4a4b-80b9-58f0d7c86561"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 1,
+              "value": 0,
+              "visible": false
+            },
+            "player_id": "f9de7c08-479b-42ad-a844-9b820054d40b"
+          }
+        ],
+        [
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 2,
+              "value": 5,
+              "visible": false
+            },
+            "player_id": "b562d436-6234-4851-8dd5-ec02362bf256"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 2,
+              "value": 1,
+              "visible": false
+            },
+            "player_id": "a4db0ce2-9571-4048-ae0c-43b7957468d1"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 2,
+              "value": 4,
+              "visible": false
+            },
+            "player_id": "e0712d26-dbd4-4a4b-80b9-58f0d7c86561"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 2,
+              "value": 3,
+              "visible": false
+            },
+            "player_id": "f9de7c08-479b-42ad-a844-9b820054d40b"
+          }
+        ],
+        [
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 0,
+              "value": 0,
+              "visible": false
+            },
+            "player_id": "b562d436-6234-4851-8dd5-ec02362bf256"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 0,
+              "value": 4,
+              "visible": false
+            },
+            "player_id": "a4db0ce2-9571-4048-ae0c-43b7957468d1"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 3,
+              "value": 2,
+              "visible": false
+            },
+            "player_id": "e0712d26-dbd4-4a4b-80b9-58f0d7c86561"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 0,
+              "value": 5,
+              "visible": false
+            },
+            "player_id": "f9de7c08-479b-42ad-a844-9b820054d40b"
+          }
+        ],
+        [
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 1,
+              "value": 5,
+              "visible": false
+            },
+            "player_id": "f9de7c08-479b-42ad-a844-9b820054d40b"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 1,
+              "value": 1,
+              "visible": false
+            },
+            "player_id": "b562d436-6234-4851-8dd5-ec02362bf256"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 0,
+              "value": 1,
+              "visible": false
+            },
+            "player_id": "a4db0ce2-9571-4048-ae0c-43b7957468d1"
+          },
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 3,
+              "value": 4,
+              "visible": false
+            },
+            "player_id": "e0712d26-dbd4-4a4b-80b9-58f0d7c86561"
+          }
+        ],
+        [
+          {
+            "version": 1,
+            "play_card": {
+              "version": 1,
+              "suit": 1,
+              "value": 4,
+              "visible": false
+            },
+            "player_id": "f9de7c08-479b-42ad-a844-9b820054d40b"
+          }
+        ]
+      ],
+      "going_alone": false,
+      "round_dealer": "f9de7c08-479b-42ad-a844-9b820054d40b",
+      "round_maker": "b562d436-6234-4851-8dd5-ec02362bf256",
+      "total_plays": 17,
+      "trump_passes": 0,
+      "player_trick_count": [
+        "f9de7c08-479b-42ad-a844-9b820054d40b",
+        2,
+        "b562d436-6234-4851-8dd5-ec02362bf256",
+        2
+      ]
+    }
+  ],
+  "game_phase": 3
+}

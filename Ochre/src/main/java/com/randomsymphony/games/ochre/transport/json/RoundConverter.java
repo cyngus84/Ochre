@@ -192,7 +192,7 @@ public class RoundConverter {
 		round.tricks = roundPlays;
 
 		// call methods to do more advanced modifications
-		fixUpLastTrick(round);
+		validateTricks(round);
 		addCapturedTricks(round, players, capturedTricks);
 		
 		return round;
@@ -216,12 +216,11 @@ public class RoundConverter {
 				(PlayConverter) mConvFactory.getConverter(JsonConverterFactory.TYPE_PLAY);
 		// track the number of plays we've written so we don't try to encode
 		// empty plays
-		int encodedPlayCount = 0;;
-		for (int ptr = 0; ptr < round.tricks.size() && encodedPlayCount < round.totalPlays;
-				ptr++) {
+		int encodedPlayCount = 0;
+		for (int ptr = 0; ptr < round.tricks.size(); ptr++) {
 			Play[] plays = round.tricks.get(ptr);
-			
 			writer.beginArray();
+
 			for (int playPtr = 0; playPtr < plays.length && encodedPlayCount < round.totalPlays;
 					playPtr++, encodedPlayCount++) {
 				Play target = plays[playPtr];
@@ -262,29 +261,38 @@ public class RoundConverter {
 	}
 	
 	/**
-	 * Given a {@link Round}, validate that the last trick has the appropriate
-	 * number of plays in it. The last trick might have the wrong number of
-	 * plays represented because the trick was not complete when the state of
-	 * the game was serialized.
+	 * Given a {@link Round}, all the trick records look correct. The number
+	 * of plays in a trick might be incorrect because we avoid encoding null
+     * Plays when the round is serialized to JSON.
 	 * @param round The round to validate and fix as needed
 	 */
-	private void fixUpLastTrick(Round round) {
-		Play[] currentTrick = round.getCurrentTrick();
-		if (currentTrick.length != round.getActivePlayers()) {
-			// first remove the current trick
-			round.tricks.remove(round.tricks.size() - 1);
-			
-			// now add it back as the right size
-			Play[] updatedTrick = new Play[round.getActivePlayers()];
-			round.tricks.add(updatedTrick);
-			
-			// replay now as though we added naturally
-			round.totalPlays -= currentTrick.length;
-			for (int ptr = 0; ptr < currentTrick.length && currentTrick[ptr] != null; ptr++) {
-				round.addPlay(currentTrick[ptr]);
-			}
-		}
-	}
+	private void validateTricks(Round round) {
+        ArrayList<Play[]> tricks = round.tricks;
+        int activePlayers = round.getActivePlayerCount();
+
+        for (int ptr = 0, limit = tricks.size(); ptr < limit; ptr++) {
+            Play[] currentTrick = tricks.get(ptr);
+
+            // if the trick play length equals the number of players, we're
+            // fine, otherwise we need to fix things up.
+            if (currentTrick.length == activePlayers) {
+                continue;
+            }
+
+            // first remove the current trick
+            round.tricks.remove(round.tricks.size() - 1);
+
+            // now add it back as the right size
+            Play[] updatedTrick = new Play[activePlayers];
+            round.tricks.add(updatedTrick);
+
+            // replay now as though we added naturally
+            round.totalPlays -= currentTrick.length;
+            for (int ptr2 = 0; ptr2 < currentTrick.length && currentTrick[ptr2] != null; ptr2++) {
+                round.addPlay(currentTrick[ptr2]);
+            }
+        }
+    }
 	
 	
 	/**

@@ -126,6 +126,7 @@ public class GameStateConverter {
 						Round round = mRoundConv.readRound(reader, playerArray);
 						gameRounds.add(round);
 					}
+
 					reader.endArray();
 					
 				} else if (TAG_SCORES.equals(nextTag)) {

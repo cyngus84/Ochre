@@ -1,5 +1,7 @@
 package com.randomsymphony.games.ochre.model;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -50,7 +52,7 @@ public class Round {
 		totalPlays++;
 	}
 	
-	public int getActivePlayers() {
+	public int getActivePlayerCount() {
 		return alone ? 3 : 4;
 	}
 	
@@ -61,7 +63,7 @@ public class Round {
 		
 		// check if current trick is completed
 		Play[] currentTrick = tricks.get(tricks.size() - 1);
-		if (currentTrick.length == getActivePlayers()) {
+		if (currentTrick.length == getActivePlayerCount()) {
 			// new trick is starting
 			return tricks.size();
 		} else {
@@ -82,28 +84,29 @@ public class Round {
 	 * @return The last completed trick or null if there is none
 	 */
 	public Play[] getLastCompletedTrick() {
-		if (totalPlays < getActivePlayers()) {
+		if (totalPlays < getActivePlayerCount()) {
 			return null;
 		} else {
 			// for example, 11 total plays, 4 players means we want the second
 			// completed trick, so (11 - 11 % 4) / 4 - 1 == (11 - 3) / 4 -1 ==
 			// 8 / 4 - 1 == 1
-			int trickOffset = (totalPlays - totalPlays % getActivePlayers()) / 
-					getActivePlayers() - 1;
+			Log.d("JMATT", "Total plays: " + totalPlays + " players: " + getActivePlayerCount());
+			int trickOffset = (totalPlays - totalPlays % getActivePlayerCount()) /
+					getActivePlayerCount() - 1;
 			return tricks.get(trickOffset);
 		}
 	}
 	
 	/**
 	 * @return true if there are no tricks or if the current one has reached
-	 * {@link #getActivePlayers()} number of cards.
+	 * {@link #getActivePlayerCount()} number of cards.
 	 */
 	public boolean isCurrentTrickComplete() {
 		Play[] currentTrick = getCurrentTrick();
 		if (currentTrick == null) {
 			return true;
 		} else {
-			return totalPlays % getActivePlayers() == 0;
+			return totalPlays % getActivePlayerCount() == 0;
 		}
 	}
 	
