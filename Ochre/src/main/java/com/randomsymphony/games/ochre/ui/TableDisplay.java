@@ -96,6 +96,7 @@ public class TableDisplay extends Fragment {
 		} else {
 			mTrumpCard.setBackgroundColor(getResources().getColor(R.color.black_card));
 		}
+		mTrumpCard.setVisibility(View.VISIBLE);
     }
 
     /**

@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -46,6 +47,7 @@ public class CardTableActivity extends FragmentActivity {
     private static final String TAG_SCORE_BOARD = "com.randomsymphony.games.ochre.SCORE_DISPLAY";
     private static final String TAG_TABLE_DISPLAY = "com.randomsymphony.games.ochre.TABLE_DISPLAY";
 	private static final File FILE_STATE_SOURCE = new File("/sdcard/ochre/state.txt");
+	private static final File FILE_OUTPUT = new File("/sdcard/ochre/state-new.txt");
 
     private PlayerDisplay[] mPlayerWidgets = new PlayerDisplay[4];
 	private GameState mGameState;
@@ -67,31 +69,69 @@ public class CardTableActivity extends FragmentActivity {
         initGameEngine();
         mStart = (Button) findViewById(R.id.start);
         mStart.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mEngine.startGame();
-				testEncoder();
-			}
-		});
-        Button testButton = (Button) findViewById(R.id.test);
+            @Override
+            public void onClick(View v) {
+                mEngine.startGame();
+                testEncoder();
+            }
+        });
+        Button testButton = (Button) findViewById(R.id.save);
         testButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
 				// encode, decode, and encode again, if they look the same, we win!
-//				String stateEncoded = testRoundEncoder(mGameState.getCurrentRound());
-//				Round decoded = testRoundDecoder(stateEncoded, mGameState.getPlayers());
-//				testRoundEncoder(decoded);
+				// String stateEncoded = testRoundEncoder(mGameState.getCurrentRound());
+				// Round decoded = testRoundDecoder(stateEncoded, mGameState.getPlayers());
+				// testRoundEncoder(decoded);
 
-
-//				testGameStateEncoder(mGameState);
-
-                GameState newState = readGameStateFromFileTest();
-                mEngine.setGameState(newState);
-
+				String state = testGameStateEncoder(mGameState);
+                writeStateToFile(state);
 			}
 		});
+
+        Button loadButton = (Button) findViewById(R.id.load);
+        loadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                GameState newState = readGameStateFromFileTest();
+                mEngine.setGameState(newState);
+                mGameState = newState;
+            }
+        });
+
         testConverter();
+    }
+
+    private void writeStateToFile(String state) {
+        if (!FILE_OUTPUT.exists()) {
+            try {
+                FILE_OUTPUT.getParentFile().mkdirs();
+                FILE_OUTPUT.createNewFile();
+            } catch (IOException e) {
+                Log.e("JMATT", "Couldn't create output file.");
+                return;
+            }
+        }
+
+        FileOutputStream writeStream = null;
+        try {
+            writeStream = new FileOutputStream(FILE_OUTPUT);
+            byte[] data = state.getBytes();
+            writeStream.write(data);
+        } catch (FileNotFoundException e) {
+            Log.e("JMATT", "Error opening file for output.");
+        } catch (IOException e) {
+            Log.e("JMATT", "Error writing contents to file.");
+        }
+
+        if (writeStream != null) {
+            try {
+                writeStream.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
     }
 
     private void gameStateTest() {
@@ -122,7 +162,6 @@ public class CardTableActivity extends FragmentActivity {
         return converter.readGameState(jsonReader);
     }
 
-    
     private String testGameStateEncoder(GameState state) {
     	GameStateConverter converter = 
     			(GameStateConverter) new JsonConverterFactory().getConverter(

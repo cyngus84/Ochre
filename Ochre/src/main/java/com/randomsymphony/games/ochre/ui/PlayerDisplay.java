@@ -310,6 +310,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		
 		switch (newPhase) {
 		    case PICK_TRUMP:
+			case DEALER_DISCARD:
 			   setRadioVisibility(true);
 			   break;
 		    case NONE:

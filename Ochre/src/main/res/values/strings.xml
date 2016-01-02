@@ -13,4 +13,6 @@
     <string name="hide_cards">Hide cards</string>
     <string name="start">Start</string>
     <string name="test">Test</string>
+    <string name="save">Save</string>
+    <string name="load">Load</string>
 </resources>

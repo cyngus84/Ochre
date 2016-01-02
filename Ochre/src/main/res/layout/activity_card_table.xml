@@ -61,11 +61,18 @@
         android:layout_alignParentLeft="true"
         android:text="@string/start" />
     <Button
-        android:id="@+id/test"
+        android:id="@+id/save"
         android:visibility="visible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/start"
         android:layout_alignTop="@id/start"
-        android:text="@string/test" />
+        android:text="@string/save" />
+    <Button
+        android:id="@+id/load"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/save"
+        android:layout_alignTop="@id/start"
+        android:text="@string/load"/>
 </RelativeLayout>
