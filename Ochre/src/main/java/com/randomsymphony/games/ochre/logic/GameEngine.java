@@ -112,140 +112,6 @@ public class GameEngine extends Fragment implements StateListener {
 		onStateChange(mState.getGamePhase());
 	}
 
-	private void updateActivePlayer() {
-		Round activeRound = mState.getCurrentRound();
-		// set active player
-		for (PlayerDisplay display : mPlayerDisplays.values()) {
-			display.setActive(false);
-		}
-
-		// set trump display based on current state of trump selection
-		if (activeRound != null) {
-			GameState.Phase currentPhase = mState.getGamePhase();
-			switch (currentPhase) {
-				case PICK_TRUMP:
-				case ORDER_UP:
-					enableNextTrumpPicker();
-					break;
-				case DEALER_DISCARD:
-					PlayerDisplay display = getPlayerDisplay(activeRound.dealer);
-					display.showDiscardCard();
-					display.setActive(true);
-					break;
-				case PLAY:
-				default:
-					activateNextPlayerDisplay();
-			}
-		}
-	}
-
-    private void updateScores() {
-        Player[] players = mState.getPlayers();
-        int team1 = mState.getPointsForPlayer(players[0]);
-        team1 += mState.getPointsForPlayer(players[2]);
-        int team2 = mState.getPointsForPlayer(players[1]);
-        team2 += mState.getPointsForPlayer(players[3]);
-        mScoreBoard.setTeamOneScore(team1);
-        mScoreBoard.setTeamTwoScore(team2);
-    }
-
-    /**
-     * Update the trick counts displayed for the players.
-     */
-    private void updatePlayerDisplays() {
-        Round activeRound = mState.getCurrentRound();
-        Player[] players = mState.getPlayers();
-        // configure player displays by setting the Player on the player display,
-        // redraw should be automatic
-        GameState.Phase phase = mState.getGamePhase();
-        boolean makerSet = phase == Phase.PLAY || phase == Phase.DEALER_DISCARD;
-        String makerId = activeRound == null ? null : activeRound.maker.getId();
-        String dealerId = activeRound == null ? null : activeRound.dealer.getId();
-
-        for (int ptr = 0, limit = players.length; ptr < limit; ptr++) {
-            Player target = players[ptr];
-            PlayerDisplay display = mPlayerDisplays.get(ptr);
-            display.setPlayer(target);
-            if (activeRound != null) {
-                // value may be null, beware auto-unboxing with null pointers!
-                Integer trickCount = activeRound.mCapturedTrickCount.get(target);
-
-                // the player may have no captured tricks, in which case the
-                // player wasn't present in the map, and a null was returned
-                // for the count above.
-                if (trickCount != null) {
-                    display.setTrickCount(trickCount);
-                }
-
-                if (makerSet && makerId.equals(display.getPlayer().getId())) {
-                    display.setMaker(true);
-                } else {
-                    display.setMaker(false);
-                }
-
-                display.setDealer(dealerId.equals(display.getPlayer().getId()));
-            }
-        }
-    }
-
-    private void updateTrumpDisplay() {
-		// configure trump display
-		switch (mState.getGamePhase()) {
-			case PICK_TRUMP:
-				mTrumpDisplay.setToPickMode();
-				break;
-			case ORDER_UP:
-				mTrumpDisplay.setToOrderUpMode();
-				break;
-			case DEALER_DISCARD:
-			case PLAY:
-				mTrumpDisplay.setToPlayMode();
-				break;
-			default:
-				Log.w("JMATT", "Unknown game phase, " +
-						"unable to properly set trump display.");
-		}
-	}
-
-    /**
-     * Update the TableDisplay with the cards played in the active trick.
-     */
-    private void updateTableDisplay() {
-        Round activeRound = mState.getCurrentRound();
-
-		if (activeRound == null) {
-			return;
-		}
-
-		Card currentTrump = activeRound.trump;
-		switch (mState.getGamePhase()) {
-			case ORDER_UP:
-				mCardTable.setTrumpCard(currentTrump);
-				break;
-			case DEALER_DISCARD:
-			case PLAY:
-				mCardTable.setTrumpSuit(currentTrump.getSuit());
-				break;
-			case PICK_TRUMP:
-				mCardTable.hideTrump();
-				break;
-			default:
-				Log.w("JMATT", "Unknown game phase, trump on table not set.");
-		}
-
-		Play[] currentTrick = activeRound.getCurrentTrick();
-		if (currentTrick != null) {
-			for (int ptr = 0, limit = currentTrick.length; ptr < limit; ptr++) {
-				Play cardLaid = currentTrick[ptr];
-				if (cardLaid == null) {
-					continue;
-				}
-
-				mCardTable.playCard(cardLaid.card, cardLaid.player);
-			}
-		}
-	}
-
 	public void setTrumpDisplay(TrumpDisplay display) {
 		mTrumpDisplay = display;
 	}
@@ -256,12 +122,6 @@ public class GameEngine extends Fragment implements StateListener {
 		((CardTableActivity) getActivity()).allowNewGame(false);
 	}
 
-    private void setTeamNames() {
-        Player[] players = mState.getPlayers();
-        mScoreBoard.setTeamOneName(players[0].getName() + " & " + players[2].getName());
-        mScoreBoard.setTeamTwoName(players[1].getName() + " & " + players[3].getName());
-    }
-	
 	public void newRound() {
 		mState.getDeck().shuffle();
     	Player[] players = mState.getPlayers();
@@ -397,28 +257,6 @@ public class GameEngine extends Fragment implements StateListener {
 		redrawAllPlayers();
 	}
 
-    private void enableNextTrumpPicker() {
-        Round currentRound = mState.getCurrentRound();
-        Player currentPlayer = getNthPlayerInTrick(currentRound.dealer,
-                currentRound.trumpPasses, currentRound);
-        Log.d("JMATT", "Current player: " + currentPlayer.getName());
-
-        // the next player is trumpPasses + 1 positions from the dealer because
-        // the first passer is one position left of the dealer
-        int positionFromDealer = currentRound.trumpPasses + 1;
-        Player nextPlayer = getNthPlayerInTrick(currentRound.dealer, positionFromDealer,
-                currentRound);
-        Log.d("JMATT", "Next player: " + nextPlayer.getName());
-
-        Log.d("JMATT", "Disabling current player.");
-        // disable current player
-        setPlayerDisplayEnabled(currentPlayer, false);
-
-        Log.d("JMATT", "Enabling next player.");
-        // activate the next player
-        setPlayerDisplayEnabled(nextPlayer, true);
-    }
-	
 	/**
 	 * A player selected to set trump.
 	 * @param alone Maker is going alone.
@@ -697,4 +535,163 @@ public class GameEngine extends Fragment implements StateListener {
 	public void setScoreBoard(ScoreBoard scoreBoard) {
 		mScoreBoard = scoreBoard;
 	}
+
+    private void updateActivePlayer() {
+        Round activeRound = mState.getCurrentRound();
+        // set active player
+        for (PlayerDisplay display : mPlayerDisplays.values()) {
+            display.setActive(false);
+        }
+
+        // set trump display based on current state of trump selection
+        if (activeRound != null) {
+            GameState.Phase currentPhase = mState.getGamePhase();
+            switch (currentPhase) {
+                case PICK_TRUMP:
+                case ORDER_UP:
+                    enableNextTrumpPicker();
+                    break;
+                case DEALER_DISCARD:
+                    PlayerDisplay display = getPlayerDisplay(activeRound.dealer);
+                    display.showDiscardCard();
+                    display.setActive(true);
+                    break;
+                case PLAY:
+                default:
+                    activateNextPlayerDisplay();
+            }
+        }
+    }
+
+    private void updateScores() {
+        Player[] players = mState.getPlayers();
+        int team1 = mState.getPointsForPlayer(players[0]);
+        team1 += mState.getPointsForPlayer(players[2]);
+        int team2 = mState.getPointsForPlayer(players[1]);
+        team2 += mState.getPointsForPlayer(players[3]);
+        mScoreBoard.setTeamOneScore(team1);
+        mScoreBoard.setTeamTwoScore(team2);
+    }
+
+    /**
+     * Update the trick counts displayed for the players.
+     */
+    private void updatePlayerDisplays() {
+        Round activeRound = mState.getCurrentRound();
+        Player[] players = mState.getPlayers();
+        // configure player displays by setting the Player on the player display,
+        // redraw should be automatic
+        GameState.Phase phase = mState.getGamePhase();
+        boolean makerSet = phase == Phase.PLAY || phase == Phase.DEALER_DISCARD;
+        String makerId = activeRound == null ? null : activeRound.maker.getId();
+        String dealerId = activeRound == null ? null : activeRound.dealer.getId();
+
+        for (int ptr = 0, limit = players.length; ptr < limit; ptr++) {
+            Player target = players[ptr];
+            PlayerDisplay display = mPlayerDisplays.get(ptr);
+            display.setPlayer(target);
+            if (activeRound != null) {
+                // value may be null, beware auto-unboxing with null pointers!
+                Integer trickCount = activeRound.mCapturedTrickCount.get(target);
+
+                // the player may have no captured tricks, in which case the
+                // player wasn't present in the map, and a null was returned
+                // for the count above.
+                if (trickCount != null) {
+                    display.setTrickCount(trickCount);
+                }
+
+                if (makerSet && makerId.equals(display.getPlayer().getId())) {
+                    display.setMaker(true);
+                } else {
+                    display.setMaker(false);
+                }
+
+                display.setDealer(dealerId.equals(display.getPlayer().getId()));
+            }
+        }
+    }
+
+    private void updateTrumpDisplay() {
+        // configure trump display
+        switch (mState.getGamePhase()) {
+            case PICK_TRUMP:
+                mTrumpDisplay.setToPickMode();
+                break;
+            case ORDER_UP:
+                mTrumpDisplay.setToOrderUpMode();
+                break;
+            case DEALER_DISCARD:
+            case PLAY:
+                mTrumpDisplay.setToPlayMode();
+                break;
+            default:
+                Log.w("JMATT", "Unknown game phase, " +
+                        "unable to properly set trump display.");
+        }
+    }
+
+    /**
+     * Update the TableDisplay with the cards played in the active trick.
+     */
+    private void updateTableDisplay() {
+        Round activeRound = mState.getCurrentRound();
+
+        if (activeRound == null) {
+            return;
+        }
+
+        Card currentTrump = activeRound.trump;
+        switch (mState.getGamePhase()) {
+            case ORDER_UP:
+                mCardTable.setTrumpCard(currentTrump);
+                break;
+            case DEALER_DISCARD:
+            case PLAY:
+                mCardTable.setTrumpSuit(currentTrump.getSuit());
+                break;
+            case PICK_TRUMP:
+                mCardTable.hideTrump();
+                break;
+            default:
+                Log.w("JMATT", "Unknown game phase, trump on table not set.");
+        }
+
+        Play[] currentTrick = activeRound.getCurrentTrick();
+        if (currentTrick != null) {
+            for (int ptr = 0, limit = currentTrick.length; ptr < limit; ptr++) {
+                Play cardLaid = currentTrick[ptr];
+                if (cardLaid == null) {
+                    continue;
+                }
+
+                mCardTable.playCard(cardLaid.card, cardLaid.player);
+            }
+        }
+    }
+
+    private void setTeamNames() {
+        Player[] players = mState.getPlayers();
+        mScoreBoard.setTeamOneName(players[0].getName() + " & " + players[2].getName());
+        mScoreBoard.setTeamTwoName(players[1].getName() + " & " + players[3].getName());
+    }
+
+
+    private void enableNextTrumpPicker() {
+        Round currentRound = mState.getCurrentRound();
+        Player currentPlayer = getNthPlayerInTrick(currentRound.dealer,
+                currentRound.trumpPasses, currentRound);
+
+        // the next player is trumpPasses + 1 positions from the dealer because
+        // the first passer is one position left of the dealer
+        int positionFromDealer = currentRound.trumpPasses + 1;
+        Player nextPlayer = getNthPlayerInTrick(currentRound.dealer, positionFromDealer,
+                currentRound);
+
+        // disable current player
+        setPlayerDisplayEnabled(currentPlayer, false);
+
+        // activate the next player
+        setPlayerDisplayEnabled(nextPlayer, true);
+    }
 }
