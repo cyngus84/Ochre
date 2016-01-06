@@ -1,5 +1,6 @@
 package com.randomsymphony.games.ochre;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -8,10 +9,16 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.UUID;
 
 import com.randomsymphony.games.ochre.logic.GameEngine;
@@ -30,6 +37,7 @@ import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 import com.randomsymphony.games.ochre.R;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.JsonReader;
@@ -38,6 +46,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okio.BufferedSink;
 
 public class CardTableActivity extends FragmentActivity {
 	
@@ -48,6 +63,8 @@ public class CardTableActivity extends FragmentActivity {
     private static final String TAG_TABLE_DISPLAY = "com.randomsymphony.games.ochre.TABLE_DISPLAY";
 	private static final File FILE_STATE_SOURCE = new File("/sdcard/ochre/state.txt");
 	private static final File FILE_OUTPUT = new File("/sdcard/ochre/state-new.txt");
+
+    private static final String URL_BASE = "http://ochre-bucket-store.appspot.com/game_data/";
 
     private PlayerDisplay[] mPlayerWidgets = new PlayerDisplay[4];
 	private GameState mGameState;
@@ -85,8 +102,16 @@ public class CardTableActivity extends FragmentActivity {
 				// Round decoded = testRoundDecoder(stateEncoded, mGameState.getPlayers());
 				// testRoundEncoder(decoded);
 
-				String state = testGameStateEncoder(mGameState);
-                writeStateToFile(state);
+				final String state = testGameStateEncoder(mGameState);
+                new AsyncTask<Void, Void, Void>() {
+
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        writeStateToUrl(mGameState.getGameId().toString(), state);
+                        Log.d("JMATT", "State write should be complete.");
+                        return null;
+                    }
+                }.execute();
 			}
 		});
 
@@ -94,9 +119,21 @@ public class CardTableActivity extends FragmentActivity {
         loadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                GameState newState = readGameStateFromFileTest();
-                mEngine.setGameState(newState);
-                mGameState = newState;
+//                GameState newState = readGameStateFromFileTest();
+
+                new AsyncTask<Void, Void, GameState>() {
+
+                    @Override
+                    protected GameState doInBackground(Void... params) {
+                        return readStateFromUrl(mGameState.getGameId().toString());
+                    }
+
+                    @Override
+                    protected void onPostExecute(GameState newState) {
+                        mEngine.setGameState(newState);
+                        mGameState = newState;                    }
+                }.execute();
+
             }
         });
 
@@ -134,6 +171,34 @@ public class CardTableActivity extends FragmentActivity {
         }
     }
 
+    private void writeStateToUrl(String gameId, final String state) {
+        Log.d("JMATT", "Uploading data for game id: " + gameId);
+
+        OkHttpClient client = new OkHttpClient();
+        Request req = new Request.Builder().url(URL_BASE + gameId)
+                .method("POST", new RequestBody() {
+                    @Override
+                    public MediaType contentType() {
+                        return MediaType.parse("application/x-www-form-urlencoded");
+                    }
+
+                    @Override
+                    public void writeTo(BufferedSink sink) throws IOException {
+                        String formData = "data=" + state;
+                        sink.writeString(formData, Charset.forName("UTF-8"));
+                    }
+                }).build();
+        try {
+            Response resp = client.newCall(req).execute();
+            int code = resp.code();
+            String body = resp.body().toString();
+
+            Log.d("JMATT", "State write got response code: " + code);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void gameStateTest() {
         String gameState = testGameStateEncoder(mGameState);
         GameState decoded = testGameStateDecoder(gameState);
@@ -148,6 +213,21 @@ public class CardTableActivity extends FragmentActivity {
             return decoded;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private GameState readStateFromUrl(String gameId) {
+        OkHttpClient client = new OkHttpClient();
+        Request req = new Request.Builder().url(URL_BASE + gameId).method("GET", null).build();
+        try {
+            Response resp = client.newCall(req).execute();
+            String body = resp.body().string();
+            Log.d("JMATT", "State read got response: " + body);
+            GameState state = fromReader(new StringReader(body));
+            return state;
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -2,6 +2,7 @@ package com.randomsymphony.games.ochre.transport.json;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
@@ -21,7 +22,8 @@ public class GameStateConverter {
 	private static final String TAG_SCORES = "player_scores";
 	private static final String TAG_ROUNDS = "game_rounds";
 	private static final String TAG_PHASE = "game_phase";
-	
+    private static final String TAG_GAME_ID = "game_id";
+
 	private ConverterFactory mConvFactory;
 	private PlayerConverter mPlayerConv;
 	private RoundConverter mRoundConv;
@@ -35,6 +37,8 @@ public class GameStateConverter {
 		
 		writer.beginObject();
 		writer.name(TAG_VERSION).value(CURRENT_VERSION);
+
+		writer.name(TAG_GAME_ID).value(gameState.getGameId().toString());
 		
 		// write players first since they will be used elsewhere during
 		// deserialization
@@ -81,6 +85,7 @@ public class GameStateConverter {
 		ArrayList<Player> players = new ArrayList<Player>();
 		Phase phase = Phase.NONE;
 		int version = -1;
+		UUID gameId = null;
 		
 		try {
 			JsonToken nextToken = reader.peek();
@@ -143,6 +148,8 @@ public class GameStateConverter {
 					reader.endArray();
 				} else if (TAG_PHASE.equals(nextTag)) {
 					phase = Phase.values()[reader.nextInt()];
+				} else if (TAG_GAME_ID.equals(nextTag)) {
+					gameId = UUID.fromString(reader.nextString());
 				}
 				
 			}
@@ -156,6 +163,7 @@ public class GameStateConverter {
 		// put the players into a player factory
 		PlayerListFactory playerFactory = new PlayerListFactory(players);
 		gameState = new GameState();
+		gameState.setGameId(gameId);
 		gameState.setPlayerFactory(playerFactory);
 		gameState.setGamePhase(phase);
 
@@ -189,7 +197,7 @@ public class GameStateConverter {
 		
 		return gameState;
 	}
-	
+
 	private void initSubconverters() {
 		if (mPlayerConv == null) {
 			mPlayerConv = 
