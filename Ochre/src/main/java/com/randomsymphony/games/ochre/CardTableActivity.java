@@ -37,6 +37,7 @@ import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 import com.randomsymphony.games.ochre.R;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -63,8 +64,15 @@ public class CardTableActivity extends FragmentActivity {
     private static final String TAG_TABLE_DISPLAY = "com.randomsymphony.games.ochre.TABLE_DISPLAY";
 	private static final File FILE_STATE_SOURCE = new File("/sdcard/ochre/state.txt");
 	private static final File FILE_OUTPUT = new File("/sdcard/ochre/state-new.txt");
-
     private static final String URL_BASE = "http://ochre-bucket-store.appspot.com/game_data/";
+
+    public static GameState fromReader(Reader reader) {
+        JsonReader jsonReader = new JsonReader(reader);
+        GameStateConverter converter =
+                (GameStateConverter) new JsonConverterFactory().getConverter(
+                        JsonConverterFactory.TYPE_GAME_STATE);
+        return converter.readGameState(jsonReader);
+    }
 
     private PlayerDisplay[] mPlayerWidgets = new PlayerDisplay[4];
 	private GameState mGameState;
@@ -234,14 +242,6 @@ public class CardTableActivity extends FragmentActivity {
         return null;
     }
 
-    private GameState fromReader(Reader reader) {
-        JsonReader jsonReader = new JsonReader(reader);
-        GameStateConverter converter =
-                (GameStateConverter) new JsonConverterFactory().getConverter(
-                        JsonConverterFactory.TYPE_GAME_STATE);
-        return converter.readGameState(jsonReader);
-    }
-
     private String testGameStateEncoder(GameState state) {
     	GameStateConverter converter = 
     			(GameStateConverter) new JsonConverterFactory().getConverter(
@@ -361,7 +361,6 @@ public class CardTableActivity extends FragmentActivity {
         mGameState = new GameState();
 		mGameState.setPlayerFactory(new PlayerFactory());
         mGameState.setRetainInstance(true);
-        mGameState.setGameId(UUID.randomUUID());
         getSupportFragmentManager().beginTransaction().add(mGameState, TAG_GAME_STATE).commit();
     }
     
@@ -379,7 +378,7 @@ public class CardTableActivity extends FragmentActivity {
     
     private void initGameEngine() {
     	mEngine = GameEngine.getInstance(TAG_TRUMP_DISPLAY, TAG_GAME_STATE, TAG_SCORE_BOARD,
-    			TAG_TABLE_DISPLAY);
+    			TAG_TABLE_DISPLAY, Uri.parse(URL_BASE));
     	mEngine.setRetainInstance(true);
     	getSupportFragmentManager().beginTransaction().add(mEngine, TAG_GAME_ENGINE).commit();
 

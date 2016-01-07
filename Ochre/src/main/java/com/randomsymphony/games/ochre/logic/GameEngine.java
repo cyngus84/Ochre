@@ -1,6 +1,13 @@
 package com.randomsymphony.games.ochre.logic;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import com.randomsymphony.games.ochre.CardTableActivity;
@@ -9,13 +16,18 @@ import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Play;
 import com.randomsymphony.games.ochre.model.Player;
 import com.randomsymphony.games.ochre.model.Round;
+import com.randomsymphony.games.ochre.transport.GameStreamer;
+import com.randomsymphony.games.ochre.transport.json.GameStateConverter;
+import com.randomsymphony.games.ochre.transport.json.JsonConverterFactory;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
 import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.JsonWriter;
 import android.util.Log;
 
 public class GameEngine extends Fragment implements StateListener {
@@ -32,14 +44,16 @@ public class GameEngine extends Fragment implements StateListener {
 	private static final String TAG_GAME_STATE = "game_state";
 	private static final String TAG_SCORE_DISPLAY = "score_board";
 	private static final String TAG_TABLE_DISPLAY = "table_display";
+	private static final String ARG_URL_BASE = "url_base";
 	
 	public static GameEngine getInstance(String trumpDisplayTag, String gameStateTag,
-			String scoreBoardTag, String tableDisplayTag) {
+			String scoreBoardTag, String tableDisplayTag, Uri uriBase) {
 		Bundle args = new Bundle();
 		args.putString(TAG_TRUMP_DISPLAY, trumpDisplayTag);
 		args.putString(TAG_GAME_STATE, gameStateTag);
 		args.putString(TAG_SCORE_DISPLAY, scoreBoardTag);
 		args.putString(TAG_TABLE_DISPLAY, tableDisplayTag);
+		args.putParcelable(ARG_URL_BASE, uriBase);
 		GameEngine instance = new GameEngine();
 		instance.setArguments(args);
 		return instance;
@@ -54,6 +68,12 @@ public class GameEngine extends Fragment implements StateListener {
 	private TrumpDisplay mTrumpDisplay;
 	private ScoreBoard mScoreBoard;
 	private ArrayList<StateListener> mStateListeners = new ArrayList<StateListener>();
+	private Uri mBaseUri;
+    // TODO (have another class that listens to game state changes from
+    // a GameState object and GameEngine had upload and refreshes.
+	private GameStreamer mStateShuttle;
+    private ArrayList<byte[]> mOutboundStateHashes = new ArrayList<byte[]>();
+    private byte[] mLastInboundHash = new byte[0];
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -65,9 +85,16 @@ public class GameEngine extends Fragment implements StateListener {
                 args.getString(TAG_TABLE_DISPLAY));
         mScoreBoard = (ScoreBoard) getFragmentManager().findFragmentByTag(
                 args.getString(TAG_SCORE_DISPLAY));
+        mBaseUri = args.getParcelable(ARG_URL_BASE);
 		setGameState((GameState) getFragmentManager().findFragmentByTag(
                 args.getString(TAG_GAME_STATE)));
 	}
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mStateShuttle.stop();
+    }
 
 	public void registerStateListener(StateListener listener) {
 		mStateListeners.add(listener);
@@ -87,8 +114,14 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 	
 	public void setGameState(GameState state) {
-		mState = state;
-		mState.setPhaseListener(this);
+        setGameState(state, true);
+	}
+
+    private void setGameState(GameState state, boolean pushUpdate) {
+        Log.d("JMATT", "Game has id: " + state.getGameId().toString());
+        GameState oldState = mState;
+        mState = state;
+        mState.setPhaseListener(this);
 
         updateTrumpDisplay();
 
@@ -99,18 +132,79 @@ public class GameEngine extends Fragment implements StateListener {
         // appropriately handle played cards
         mCardTable.setGameState(mState);
 
-		// configure score board
+        // configure score board
         updateScores();
 
-		// play cards on the table display
-		updateTableDisplay();
+        // play cards on the table display
+        updateTableDisplay();
 
-		setTeamNames();
+        setTeamNames();
 
-		updateActivePlayer();
+        updateActivePlayer();
 
-		onStateChange(mState.getGamePhase());
-	}
+        onStateChange(mState.getGamePhase());
+
+        updateLocalStateHash();
+
+        if (oldState == null || !state.getGameId().equals(oldState.getGameId())) {
+            if (mStateShuttle != null) {
+                mStateShuttle.stop();
+                mStateShuttle = null;
+            }
+
+            mStateShuttle = new GameStreamer(mBaseUri, state.getGameId());
+            mStateShuttle.startPolling(new GameStreamer.GameUpdateListener() {
+                @Override
+                public void onNewState(String jsonState) {
+                    try {
+                        MessageDigest digest = MessageDigest.getInstance("SHA-1");
+                        byte[] strBytes = jsonState.getBytes();
+                        digest.update(strBytes, 0, strBytes.length);
+                        byte[] hash = digest.digest();
+                        if (Arrays.equals(hash, mLastInboundHash)) {
+                            Log.d("JMATT", "Hash is same as previously observed.");
+                            return;
+                        }
+
+                        mLastInboundHash = hash;
+
+                        // see if this hash matches any we sent previously.
+                        int foundPosition = -1;
+                        for (int ptr = 0, limit = mOutboundStateHashes.size();
+                             ptr < limit;
+                             ptr++) {
+                            if (Arrays.equals(hash, mOutboundStateHashes.get(ptr))) {
+                                foundPosition = ptr;
+                                break;
+                            }
+                        }
+
+                        if (foundPosition > -1) {
+                            Log.d("JMATT", "State matches sent state in position " + foundPosition);
+                            // remove all the previous hashes, including the one that
+                            // just came in from our history
+                            for (; foundPosition > -1; foundPosition--) {
+                                mOutboundStateHashes.remove(0);
+                            }
+
+                            Log.d("JMATT", "Size of outbound state record list: " +
+                                    mOutboundStateHashes.size());
+                            return;
+                        }
+                    } catch (NoSuchAlgorithmException e) {
+                        e.printStackTrace();
+                    }
+                    Log.d("JMATT", "State changed on server.");
+                    setGameState(CardTableActivity.fromReader(new StringReader(jsonState)), false);
+                }
+            });
+
+            // if this is a new game, always push an update
+            pushStateUpdate();
+        } else if (pushUpdate) {
+            pushStateUpdate();
+        }
+    }
 
 	public void setTrumpDisplay(TrumpDisplay display) {
 		mTrumpDisplay = display;
@@ -255,7 +349,58 @@ public class GameEngine extends Fragment implements StateListener {
 
         enableNextTrumpPicker();
 		redrawAllPlayers();
+
+		pushStateUpdate();
 	}
+
+	private void pushStateUpdate() {
+        String updateJson = stateToJsonString(mState);
+        if (updateJson != null) {
+            byte[] hash = hashFromJsonState(updateJson);
+            if (hash != null) {
+                mOutboundStateHashes.add(hash);
+                mStateShuttle.uploadState(updateJson);
+            }
+        }
+	}
+
+	private void updateLocalStateHash() {
+        String updateJson = stateToJsonString(mState);
+        if (updateJson != null) {
+            byte[] hash = hashFromJsonState(updateJson);
+            if (hash != null) {
+                mLastInboundHash = hash;
+            }
+        }
+	}
+
+    private byte[] hashFromJsonState(String state) {
+        try {
+            MessageDigest digester = MessageDigest.getInstance("SHA-1");
+            byte[] strBytes = state.getBytes();
+            digester.update(strBytes, 0, strBytes.length);
+            return digester.digest();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String stateToJsonString(GameState state) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(baos));
+        GameStateConverter converter =
+                (GameStateConverter) new JsonConverterFactory().getConverter(
+                        JsonConverterFactory.TYPE_GAME_STATE);
+        try {
+            converter.writeGameState(writer, state);
+            writer.flush();
+            return baos.toString("UTF-8");
+        } catch (IOException e) {
+            Log.e("JMATT", "Unexpected exception encoding game state.");
+            return null;
+        }
+    }
 
 	/**
 	 * A player selected to set trump.

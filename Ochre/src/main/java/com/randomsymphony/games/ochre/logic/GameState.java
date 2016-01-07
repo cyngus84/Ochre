@@ -48,6 +48,7 @@ public class GameState extends Fragment {
 	public GameState() {
         super();
 		mDeck = new DeckOfCards();
+		mGameId = UUID.randomUUID();
 	}
 
     public void setPlayerFactory(PlayerFactory source) {
