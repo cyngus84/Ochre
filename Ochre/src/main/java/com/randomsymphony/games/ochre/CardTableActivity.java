@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -21,6 +22,8 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.UUID;
 
+import com.google.api.services.urlshortener.Urlshortener;
+import com.google.api.services.urlshortener.model.Url;
 import com.randomsymphony.games.ochre.logic.GameEngine;
 import com.randomsymphony.games.ochre.logic.GameState;
 import com.randomsymphony.games.ochre.logic.PlayerFactory;
@@ -98,6 +101,13 @@ public class CardTableActivity extends FragmentActivity {
             public void onClick(View v) {
                 mEngine.startGame();
                 testEncoder();
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        createShortUrl(URL_BASE + mGameState.getGameId().toString());
+                        return null;
+                    }
+                }.execute();
             }
         });
         Button testButton = (Button) findViewById(R.id.save);
@@ -146,6 +156,71 @@ public class CardTableActivity extends FragmentActivity {
         });
 
         testConverter();
+    }
+
+    private static final String ADDRESS_URL_SHORTENER =
+            "https://www.googleapis.com/urlshortener/v1/url";
+    private static final String TAG_URL_LONG = "longUrl";
+    private static final String TAG_URL_SHORT = "id";
+
+    private void createShortUrl(String myurl) {
+
+
+        Urlshortener.Builder builder = new Urlshortener.Builder (AndroidHttp.newCompatibleTransport(), AndroidJsonFactory.getDefaultInstance(), null);
+        Urlshortener urlshortener = builder.build();
+
+        com.google.api.services.urlshortener.model.Url url = new Url();
+        url.setLongUrl(myurl);
+        try {
+            url = urlshortener.url().insert(url).execute();
+//            return url.getId();
+        } catch (IOException e) {
+//            return null;
+        }
+
+
+        Uri shortenerAddress = Uri.parse(ADDRESS_URL_SHORTENER);
+        Uri.Builder bob = shortenerAddress.buildUpon()
+                .appendQueryParameter("key", getString(R.string.shortener));
+        shortenerAddress = bob.build();
+        Log.d("JMATT", "API address: " + shortenerAddress.toString());
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(128);
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(baos));
+        try {
+            writer.beginObject();
+            writer.name(TAG_URL_LONG).value(url);
+            writer.endObject();
+            writer.flush();
+        } catch (IOException e) {
+            Log.d("JMATT", "Error writing object.");
+            return;
+        }
+        final String body = baos.toString();
+        Log.d("JMATT", "JSON Body: " + body);
+
+        Request.Builder bobForRequests = new Request.Builder();
+        bobForRequests.url(shortenerAddress.toString())
+                .method("POST", new RequestBody() {
+                    @Override
+                    public MediaType contentType() {
+                        return MediaType.parse("application/json");
+                    }
+
+                    @Override
+                    public void writeTo(BufferedSink sink) throws IOException {
+                        sink.writeString(body, Charset.forName("UTF-8"));
+                    }
+                });
+
+        OkHttpClient client = new OkHttpClient();
+
+        try {
+            Response response = client.newCall(bobForRequests.build()).execute();
+            Log.d("JMATT", "Got response: " + response.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void writeStateToFile(String state) {
