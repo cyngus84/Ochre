@@ -15,4 +15,5 @@
     <string name="test">Test</string>
     <string name="save">Save</string>
     <string name="load">Load</string>
+    <string name="shortener">API KEY</string>
 </resources>

@@ -1,6 +1,5 @@
 package com.randomsymphony.games.ochre;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -9,18 +8,17 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.Writer;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.util.UUID;
 
+import com.google.api.client.extensions.android.json.AndroidJsonFactory;
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
+import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.services.urlshortener.Urlshortener;
+import com.google.api.services.urlshortener.model.Url;
 import com.randomsymphony.games.ochre.logic.GameEngine;
 import com.randomsymphony.games.ochre.logic.GameState;
 import com.randomsymphony.games.ochre.logic.PlayerFactory;
@@ -35,18 +33,19 @@ import com.randomsymphony.games.ochre.ui.PlayerDisplay;
 import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
-import com.randomsymphony.games.ochre.R;
 
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.text.TextUtils;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -65,6 +64,7 @@ public class CardTableActivity extends FragmentActivity {
 	private static final File FILE_STATE_SOURCE = new File("/sdcard/ochre/state.txt");
 	private static final File FILE_OUTPUT = new File("/sdcard/ochre/state-new.txt");
     private static final String URL_BASE = "http://ochre-bucket-store.appspot.com/game_data/";
+    private static final String PARAM_API_KEY = "key";
 
     public static GameState fromReader(Reader reader) {
         JsonReader jsonReader = new JsonReader(reader);
@@ -81,6 +81,7 @@ public class CardTableActivity extends FragmentActivity {
 	private TrumpDisplay mTrumpWidget;
 	private ScoreBoard mScoreBoard;
 	private Button mStart;
+    private TextView mShortUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +99,19 @@ public class CardTableActivity extends FragmentActivity {
             public void onClick(View v) {
                 mEngine.startGame();
                 testEncoder();
+                new AsyncTask<Void, Void, String>() {
+                    @Override
+                    protected String doInBackground(Void... params) {
+                        return createShortUrl(URL_BASE + mGameState.getGameId().toString());
+                    }
+
+                    @Override
+                    protected void onPostExecute(String shortUrl) {
+                        if (!TextUtils.isEmpty(shortUrl)) {
+                            updateShortUrl(shortUrl);
+                        }
+                    }
+                }.execute();
             }
         });
         Button testButton = (Button) findViewById(R.id.save);
@@ -144,8 +158,35 @@ public class CardTableActivity extends FragmentActivity {
 
             }
         });
+        mShortUrl = (TextView) findViewById(R.id.short_url);
 
         testConverter();
+    }
+
+    private String createShortUrl(String myurl) {
+        Urlshortener.Builder builder = new Urlshortener.Builder (new NetHttpTransport(),
+                AndroidJsonFactory.getDefaultInstance(), null);
+        builder.setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
+            @Override
+            public void initialize(AbstractGoogleClientRequest<?> request) throws IOException {
+                request.put(PARAM_API_KEY, getResources().getString(R.string.shortener));
+            }
+        });
+        Urlshortener urlshortener = builder.build();
+
+        com.google.api.services.urlshortener.model.Url url = new Url();
+        url.setLongUrl(myurl);
+        try {
+            url = urlshortener.url().insert(url).execute();
+            return url.getId();
+        } catch (IOException e) {
+            Log.d("JMATT", "Exception getting short URL", e);
+        }
+        return null;
+    }
+
+    private void updateShortUrl(String shortUrl) {
+        mShortUrl.setText(shortUrl);
     }
 
     private void writeStateToFile(String state) {

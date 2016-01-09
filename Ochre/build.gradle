@@ -16,27 +16,50 @@ allprojects {
 
 apply plugin: 'com.android.application'
 
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.8'
+}
+
 android {
+    signingConfigs {
+        release_config {
+            keyAlias 'ochre_key_1'
+            storeFile file('/Users/cyngus/ochre.keystore')
+            //storePassword System.console().readLine("\nKeystore password: ")
+            //keyPassword System.console().readLine("\nKey password: ")
+        }
+
+        debug_config {
+            keyAlias 'ochre_debug_key_1'
+            storeFile file('/Users/cyngus/ochre.debug.keystore')
+            storePassword 'ochredebug'
+            keyPassword 'ochredebug'
+
+        }
+    }
     compileSdkVersion 19
     buildToolsVersion "23.0.2"
-
     defaultConfig {
         applicationId "com.randomsymphony.games.ochre"
         minSdkVersion 11
         targetSdkVersion 19
     }
-
     lintOptions {
         abortOnError false
     }
-
+    productFlavors {
+        flavorUnsigned {
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release_config
         }
-
         debug {
+            signingConfig signingConfigs.debug_config
         }
     }
 }
@@ -44,4 +67,6 @@ android {
 dependencies {
     compile 'com.android.support:support-v4:19.0.0'
     compile 'com.squareup.okhttp3:okhttp:3.0.0-RC1'
+    compile 'com.google.apis:google-api-services-urlshortener:v1-rev41-1.21.0'
+    compile 'com.google.http-client:google-http-client-android:1.19.0'
 }
