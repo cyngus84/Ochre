@@ -29,6 +29,7 @@ import com.randomsymphony.games.ochre.transport.json.JsonConverterFactory;
 import com.randomsymphony.games.ochre.transport.json.PlayerConverter;
 import com.randomsymphony.games.ochre.transport.json.RoundConverter;
 import com.randomsymphony.games.ochre.transport.json.TestValues;
+import com.randomsymphony.games.ochre.ui.JoinDialog;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
 import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
@@ -37,6 +38,7 @@ import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.util.JsonReader;
@@ -74,6 +76,19 @@ public class CardTableActivity extends FragmentActivity {
         return converter.readGameState(jsonReader);
     }
 
+    private class LoadAndUpdateState extends AsyncTask<String, Void, GameState> {
+        @Override
+        protected GameState doInBackground(String... params) {
+            return readStateFromUrl(Uri.parse(params[0]));
+        }
+
+        @Override
+        protected void onPostExecute(GameState gameState) {
+            mEngine.setGameState(gameState);
+            mGameState = gameState;
+        }
+    }
+
     private PlayerDisplay[] mPlayerWidgets = new PlayerDisplay[4];
 	private GameState mGameState;
 	private GameEngine mEngine;
@@ -82,6 +97,7 @@ public class CardTableActivity extends FragmentActivity {
 	private ScoreBoard mScoreBoard;
 	private Button mStart;
     private TextView mShortUrl;
+    private Button mJoin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +128,7 @@ public class CardTableActivity extends FragmentActivity {
                         }
                     }
                 }.execute();
+                mEngine.pushStateUpdate();
             }
         });
         Button testButton = (Button) findViewById(R.id.save);
@@ -141,26 +158,23 @@ public class CardTableActivity extends FragmentActivity {
         loadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                GameState newState = readGameStateFromFileTest();
-
-                new AsyncTask<Void, Void, GameState>() {
-
-                    @Override
-                    protected GameState doInBackground(Void... params) {
-                        return readStateFromUrl(mGameState.getGameId().toString());
-                    }
-
-                    @Override
-                    protected void onPostExecute(GameState newState) {
-                        mEngine.setGameState(newState);
-                        mGameState = newState;                    }
-                }.execute();
-
+                setGameStateFromServer(mGameState.getGameId().toString());
             }
         });
         mShortUrl = (TextView) findViewById(R.id.short_url);
+        mJoin = (Button) findViewById(R.id.join);
+        mJoin.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showJoinDialog();
+            }
+        });
 
         testConverter();
+    }
+
+    public void joinGame(String gameUrl) {
+        new LoadAndUpdateState().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, gameUrl);
     }
 
     private String createShortUrl(String myurl) {
@@ -169,7 +183,11 @@ public class CardTableActivity extends FragmentActivity {
         builder.setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
             @Override
             public void initialize(AbstractGoogleClientRequest<?> request) throws IOException {
-                request.put(PARAM_API_KEY, getResources().getString(R.string.shortener));
+                String apikey = getResources().getString(R.string.shortener);
+                if (TextUtils.isEmpty(apikey)) {
+                    throw new RuntimeException("No API key provided!");
+                }
+                request.put(PARAM_API_KEY, apikey);
             }
         });
         Urlshortener urlshortener = builder.build();
@@ -268,9 +286,18 @@ public class CardTableActivity extends FragmentActivity {
         return null;
     }
 
-    private GameState readStateFromUrl(String gameId) {
+    private void setGameStateFromServer(String gameId) {
+        joinGame(URL_BASE + gameId);
+    }
+
+    private void showJoinDialog() {
+        DialogFragment fragment = new JoinDialog();
+        fragment.show(getSupportFragmentManager(), "join");
+    }
+
+    private GameState readStateFromUrl(Uri source) {
         OkHttpClient client = new OkHttpClient();
-        Request req = new Request.Builder().url(URL_BASE + gameId).method("GET", null).build();
+        Request req = new Request.Builder().url(source.toString()).method("GET", null).build();
         try {
             Response resp = client.newCall(req).execute();
             String body = resp.body().string();

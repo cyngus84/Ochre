@@ -67,11 +67,18 @@
         android:layout_alignParentLeft="true"
         android:text="@string/start" />
     <Button
+        android:id="@+id/join"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@id/start"
+        android:text="@string/join"/>
+    <Button
         android:id="@+id/save"
         android:visibility="visible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/start"
+        android:layout_toRightOf="@id/join"
         android:layout_alignTop="@id/start"
         android:text="@string/save" />
     <Button

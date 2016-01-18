@@ -15,5 +15,11 @@
     <string name="test">Test</string>
     <string name="save">Save</string>
     <string name="load">Load</string>
-    <string name="shortener">API KEY</string>
+    <!-- Add the API key below when compiling for distribution -->
+    <string name="shortener"></string>
+    <string name="join">Join</string>
+    <string name="hint_url">short url</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_ok">OK</string>
+    <string name="shortener_base">http://goo.gl/</string>
 </resources>

@@ -353,7 +353,8 @@ public class GameEngine extends Fragment implements StateListener {
 		pushStateUpdate();
 	}
 
-	private void pushStateUpdate() {
+    // TODO EEK! properly protect this
+	public void pushStateUpdate() {
         String updateJson = stateToJsonString(mState);
         if (updateJson != null) {
             byte[] hash = hashFromJsonState(updateJson);
