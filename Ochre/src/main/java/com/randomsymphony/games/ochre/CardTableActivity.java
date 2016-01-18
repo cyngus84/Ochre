@@ -128,7 +128,6 @@ public class CardTableActivity extends FragmentActivity {
                         }
                     }
                 }.execute();
-                mEngine.pushStateUpdate();
             }
         });
         Button testButton = (Button) findViewById(R.id.save);

@@ -214,6 +214,7 @@ public class GameEngine extends Fragment implements StateListener {
         setTeamNames();
 		newRound();
 		((CardTableActivity) getActivity()).allowNewGame(false);
+        pushStateUpdate();
 	}
 
 	public void newRound() {
@@ -246,6 +247,7 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		mTrumpDisplay.setToOrderUpMode();
 		mCardTable.clearPlayedCards();
+        pushStateUpdate();
 	}
 	
 	public void playCard(Player player, Card card) {
@@ -270,6 +272,7 @@ public class GameEngine extends Fragment implements StateListener {
         }
 
         activateNextPlayerDisplay();
+        pushStateUpdate();
     }
 
     /**
@@ -353,8 +356,8 @@ public class GameEngine extends Fragment implements StateListener {
 		pushStateUpdate();
 	}
 
-    // TODO EEK! properly protect this
-	public void pushStateUpdate() {
+	private void pushStateUpdate() {
+        Log.d("JMATT", "Pushing state update.");
         String updateJson = stateToJsonString(mState);
         if (updateJson != null) {
             byte[] hash = hashFromJsonState(updateJson);
@@ -461,6 +464,7 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		redrawAllPlayers();
 		mCardTable.setTrumpSuit(currentRound.trump.getSuit());
+        pushStateUpdate();
 	}
 	
 	public void discardCard(Card card) {
@@ -472,6 +476,7 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		setPlayerDisplayEnabled(currentRound.dealer, false);
 		startRound();
+        pushStateUpdate();
 	}
 
     @Override
