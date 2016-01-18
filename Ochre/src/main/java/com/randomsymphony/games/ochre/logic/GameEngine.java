@@ -803,6 +803,7 @@ public class GameEngine extends Fragment implements StateListener {
                 break;
             case PICK_TRUMP:
                 mCardTable.hideTrump();
+                mCardTable.clearPlayedCards();
                 break;
             default:
                 Log.w("JMATT", "Unknown game phase, trump on table not set.");
@@ -810,6 +811,28 @@ public class GameEngine extends Fragment implements StateListener {
 
         Play[] currentTrick = activeRound.getCurrentTrick();
         if (currentTrick != null) {
+            int playCount = 0;
+
+            for (int ptr = 0, limit = currentTrick.length; ptr < limit; ptr++) {
+                if (currentTrick[ptr] != null) {
+                    playCount++;
+                }
+            }
+
+            // if this is the first play of a new trick, clear old cards
+            if (playCount == 1) {
+                // we started a new trick, clear things out
+                mCardTable.clearPlayedCards();
+            }
+
+            // if the current trick is empty, show the previous
+            if (playCount == 0) {
+                currentTrick = activeRound.getLastCompletedTrick();
+                if (currentTrick == null) {
+                    return;
+                }
+            }
+
             for (int ptr = 0, limit = currentTrick.length; ptr < limit; ptr++) {
                 Play cardLaid = currentTrick[ptr];
                 if (cardLaid == null) {

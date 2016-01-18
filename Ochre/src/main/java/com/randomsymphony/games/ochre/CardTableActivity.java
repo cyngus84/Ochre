@@ -173,6 +173,7 @@ public class CardTableActivity extends FragmentActivity {
     }
 
     public void joinGame(String gameUrl) {
+        mShortUrl.setText(gameUrl);
         new LoadAndUpdateState().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, gameUrl);
     }
 

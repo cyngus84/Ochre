@@ -16,7 +16,7 @@
     <string name="save">Save</string>
     <string name="load">Load</string>
     <!-- Add the API key below when compiling for distribution -->
-    <string name="shortener"></string>
+    <string name="shortener">AIzaSyDGps0YqdgxpNKxrNlstpgZ3LtidU7K7dc</string>
     <string name="join">Join</string>
     <string name="hint_url">short url</string>
     <string name="button_cancel">Cancel</string>
