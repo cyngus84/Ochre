@@ -148,8 +148,16 @@ public class GameStreamer {
         Request request = mBuilderBase.method("GET", null).build();
         try {
             Response response = mHttpClient.newCall(request).execute();
-            String state = response.body().string();
-            mCallbackHandle.obtainMessage(0, state).sendToTarget();
+            String state = null;
+            if (response.code() == 200) {
+                state = response.body().string();
+            }
+
+            response.body().close();
+
+            if (state != null) {
+                mCallbackHandle.obtainMessage(0, state).sendToTarget();
+            }
         } catch (IOException e) {
             Log.e("JMATT", "Problem reading state.");
         }
@@ -192,7 +200,9 @@ public class GameStreamer {
 
         try {
             Response response = mHttpClient.newCall(request).execute();
-            if (response.code() != 200) {
+            int code = response.code();
+            response.body().close();
+            if (code != 200) {
                 Log.e("JMATT", "Non-200 response: " + response.code() + " message: " +
                         response.body().toString());
                 return false;

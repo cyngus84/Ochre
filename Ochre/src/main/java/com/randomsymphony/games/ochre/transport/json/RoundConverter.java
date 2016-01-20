@@ -2,6 +2,9 @@ package com.randomsymphony.games.ochre.transport.json;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Set;
 
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Play;
@@ -252,9 +255,33 @@ public class RoundConverter {
 		// at positions where (position % 2) == 0 and the number of captured
 		// tricks are where (position % 2) == 1
 		writer.beginArray();
+
+		// jump through some hoops so that we always write the player scores
+		// out 'in order' by id
+
+		// create a map from player ID to player
+		Set<Player> players = round.mCapturedTrickCount.keySet();
+		HashMap<String, Player> playerIdMap = new HashMap<String, Player>(players.size());
 		for (Player player : round.mCapturedTrickCount.keySet()) {
-			writer.value(player.getId()).value(round.mCapturedTrickCount.get(player));
+			playerIdMap.put(player.getId(), player);
 		}
+
+		// create a sorted list of player ids, this is our 'write' order
+		Set<String> playerIds = playerIdMap.keySet();
+		ArrayList<String> sortedIds = new ArrayList<String>(playerIds.size());
+		for (String playerId : playerIds) {
+			sortedIds.add(playerId);
+		}
+		Collections.sort(sortedIds);
+
+		// now write out players and scores in order
+		for (int ptr = 0, limit = sortedIds.size(); ptr < limit; ptr++) {
+			String playerId = sortedIds.get(ptr);
+			Player player = playerIdMap.get(playerId);
+			int score = round.mCapturedTrickCount.get(player);
+			writer.value(playerId).value(score);
+		}
+
 		writer.endArray();
 		
 		writer.endObject();

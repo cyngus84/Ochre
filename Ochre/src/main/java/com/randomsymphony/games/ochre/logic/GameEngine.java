@@ -27,6 +27,7 @@ import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Base64;
 import android.util.JsonWriter;
 import android.util.Log;
 
@@ -74,6 +75,10 @@ public class GameEngine extends Fragment implements StateListener {
 	private GameStreamer mStateShuttle;
     private ArrayList<byte[]> mOutboundStateHashes = new ArrayList<byte[]>();
     private byte[] mLastInboundHash = new byte[0];
+    /**
+     * Tracks whether someone has currently set the 'updates blocked' bit
+     */
+    private boolean mBlocked = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -118,6 +123,8 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 
     private void setGameState(GameState state, boolean pushUpdate) {
+        boolean unblock = blockUpdates();
+
         Log.d("JMATT", "Game has id: " + state.getGameId().toString());
         GameState oldState = mState;
         mState = state;
@@ -157,38 +164,39 @@ public class GameEngine extends Fragment implements StateListener {
                 @Override
                 public void onNewState(String jsonState) {
                     try {
+                        if (jsonState == null) {
+                            return;
+                        }
                         MessageDigest digest = MessageDigest.getInstance("SHA-1");
                         byte[] strBytes = jsonState.getBytes();
                         digest.update(strBytes, 0, strBytes.length);
                         byte[] hash = digest.digest();
+
+                        boolean matchesInbound = false;
                         if (Arrays.equals(hash, mLastInboundHash)) {
-                            Log.d("JMATT", "Hash is same as previously observed.");
-                            return;
+                            matchesInbound = true;
+                        } else {
+                            Log.d("JMATT", "New hash " + Base64.encodeToString(hash, 0) +
+                                    " old hash " + Base64.encodeToString(mLastInboundHash, 0));
                         }
 
                         mLastInboundHash = hash;
 
                         // see if this hash matches any we sent previously.
-                        int foundPosition = -1;
+                        boolean matchesOutbound = false;
                         for (int ptr = 0, limit = mOutboundStateHashes.size();
                              ptr < limit;
                              ptr++) {
                             if (Arrays.equals(hash, mOutboundStateHashes.get(ptr))) {
-                                foundPosition = ptr;
-                                break;
+                                for (; ptr > -1; ptr--) {
+                                    mOutboundStateHashes.remove(ptr);
+                                }
+                                matchesOutbound = true;
+                                limit = mOutboundStateHashes.size();
                             }
                         }
 
-                        if (foundPosition > -1) {
-                            Log.d("JMATT", "State matches sent state in position " + foundPosition);
-                            // remove all the previous hashes, including the one that
-                            // just came in from our history
-                            for (; foundPosition > -1; foundPosition--) {
-                                mOutboundStateHashes.remove(0);
-                            }
-
-                            Log.d("JMATT", "Size of outbound state record list: " +
-                                    mOutboundStateHashes.size());
+                        if (matchesInbound || matchesOutbound) {
                             return;
                         }
                     } catch (NoSuchAlgorithmException e) {
@@ -204,21 +212,33 @@ public class GameEngine extends Fragment implements StateListener {
         } else if (pushUpdate) {
             pushStateUpdate();
         }
+
+        if (unblock) {
+            unblockUpdates();
+        }
     }
 
 	public void setTrumpDisplay(TrumpDisplay display) {
 		mTrumpDisplay = display;
 	}
-	
+
 	public void startGame() {
+        boolean unblock = blockUpdates();
+
         setTeamNames();
 		newRound();
 		((CardTableActivity) getActivity()).allowNewGame(false);
-        pushStateUpdate();
+
+        if (unblock) {
+            pushStateUpdate();
+            unblockUpdates();
+        }
 	}
 
 	public void newRound() {
-		mState.getDeck().shuffle();
+        boolean unblock = blockUpdates();
+
+        mState.getDeck().shuffle();
     	Player[] players = mState.getPlayers();
     	for (int ptr = 0; ptr < players.length; ptr++) {
     		players[ptr].discardHand();
@@ -247,10 +267,16 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		mTrumpDisplay.setToOrderUpMode();
 		mCardTable.clearPlayedCards();
-        pushStateUpdate();
+
+        if (unblock) {
+            pushStateUpdate();
+            unblockUpdates();
+        }
 	}
 	
 	public void playCard(Player player, Card card) {
+        boolean unblock = blockUpdates();
+
         Round currentRound = mState.getCurrentRound();
         currentRound.addPlay(new Play(player, card));
         Log.d("JMATT", player.getName() + " played " + card.toString());
@@ -272,7 +298,10 @@ public class GameEngine extends Fragment implements StateListener {
         }
 
         activateNextPlayerDisplay();
-        pushStateUpdate();
+        if (unblock) {
+            pushStateUpdate();
+            unblockUpdates();
+        }
     }
 
     /**
@@ -328,6 +357,8 @@ public class GameEngine extends Fragment implements StateListener {
 	 * A player passed on setting trump.
 	 */
 	public void pass() {
+        boolean unblock = blockUpdates();
+
 		if (mState.getGamePhase() != GameState.Phase.ORDER_UP &&
 				mState.getGamePhase() != GameState.Phase.PICK_TRUMP) {
 			throw new IllegalStateException("State is invalid for this operation.");
@@ -353,15 +384,29 @@ public class GameEngine extends Fragment implements StateListener {
         enableNextTrumpPicker();
 		redrawAllPlayers();
 
-		pushStateUpdate();
+        if (unblock) {
+            pushStateUpdate();
+            unblockUpdates();
+        }
 	}
 
 	private void pushStateUpdate() {
-        Log.d("JMATT", "Pushing state update.");
         String updateJson = stateToJsonString(mState);
         if (updateJson != null) {
             byte[] hash = hashFromJsonState(updateJson);
+
+            if (Arrays.equals(mLastInboundHash, hash)) {
+                Log.d("JMATT", "Outbound matches inbound, not pushing!");
+                return;
+            }
+
             if (hash != null) {
+                for (byte[] outbound : mOutboundStateHashes) {
+                    if (Arrays.equals(outbound, hash)) {
+                        Log.d("JMATT", "matches other outbound, ignoring duplicate.");
+                        return;
+                    }
+                }
                 mOutboundStateHashes.add(hash);
                 mStateShuttle.uploadState(updateJson);
             }
@@ -411,6 +456,8 @@ public class GameEngine extends Fragment implements StateListener {
 	 * @param alone Maker is going alone.
 	 */
 	public void setTrump(boolean alone) {
+        boolean unblock = blockUpdates();
+
 		if (mState.getGamePhase() != GameState.Phase.ORDER_UP &&
 				mState.getGamePhase() != GameState.Phase.PICK_TRUMP) {
 			throw new IllegalStateException("State is invalid for this operation.");
@@ -464,19 +511,28 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		redrawAllPlayers();
 		mCardTable.setTrumpSuit(currentRound.trump.getSuit());
-        pushStateUpdate();
+        if (unblock) {
+            pushStateUpdate();
+            unblockUpdates();
+        }
 	}
 	
 	public void discardCard(Card card) {
+        boolean unblock = blockUpdates();
+
 		Round currentRound = mState.getCurrentRound();
 		currentRound.dealer.removeCard(card);
 		PlayerDisplay dealer = getPlayerDisplay(currentRound.dealer);
-		dealer.hideDiscardCard();
+        dealer.hideDiscardCard();
 		dealer.redraw();
 		
 		setPlayerDisplayEnabled(currentRound.dealer, false);
 		startRound();
-        pushStateUpdate();
+
+        if (unblock) {
+            pushStateUpdate();
+            unblockUpdates();
+        }
 	}
 
     @Override
@@ -867,5 +923,32 @@ public class GameEngine extends Fragment implements StateListener {
 
         // activate the next player
         setPlayerDisplayEnabled(nextPlayer, true);
+    }
+
+    /**
+     * Sets {@link #mBlocked} to true if it is not already. This can be used if
+     * a code sequence is promising to push a state update after making various
+     * modifications. Using this to set and check therefore allows code to know
+     * whether a state update is pending and not to also try to push an update,
+     * but instead wait for some ancestor in the call chain to cause the update
+     * to happen.
+     * @return true if the value of {@link #mBlocked} was changed, set to true,
+     * otherwise returns false.
+     */
+    private boolean blockUpdates() {
+        if (mBlocked) {
+            return false;
+        } else {
+            mBlocked = true;
+            return true;
+        }
+    }
+
+    /**
+     * Unblocks updates, ideally you should only call this if you previously
+     * called {@link #blockUpdates()} and it returned true.
+     */
+    private void unblockUpdates() {
+        mBlocked = false;
     }
 }
