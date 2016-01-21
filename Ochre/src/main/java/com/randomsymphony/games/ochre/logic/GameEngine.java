@@ -897,6 +897,9 @@ public class GameEngine extends Fragment implements StateListener {
 
                 mCardTable.playCard(cardLaid.card, cardLaid.player);
             }
+        } else {
+            // we only lack a current trick at the beginning of a round
+            mCardTable.clearPlayedCards();
         }
     }
 
