@@ -22,4 +22,5 @@
     <string name="button_cancel">Cancel</string>
     <string name="button_ok">OK</string>
     <string name="shortener_base">http://goo.gl/</string>
+    <string name="enabled">Sit</string>
 </resources>

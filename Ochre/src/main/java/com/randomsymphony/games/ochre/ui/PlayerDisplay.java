@@ -16,6 +16,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
@@ -57,7 +59,9 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private int mTrickCount = 0;
 	private boolean mWideDisplay;
 	private GameState.Phase mPhase = GameState.Phase.NONE;
-	
+	private CheckBox mEnabled;
+    private boolean mShowDiscardButtonEnabled = false;
+
 	public PlayerDisplay() {
 		
 	}
@@ -95,6 +99,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		mContent = (ViewGroup) inflater.inflate(LAYOUT_ID, null);
 		initViewReferences(mContent);
 		redraw();
+        disableAll();
 		return mContent;
 	}
 	
@@ -144,7 +149,34 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 			Log.d("JMATT", "Not resumed, skipping redraw.");
 			return;
 		}
-		
+
+		// set label of player
+		StringBuilder playerLabel = new StringBuilder(mPlayer != null ? mPlayer.getName() : "EMPTY");
+		if (mIsDealer) {
+			playerLabel.append(" DEALER");
+		}
+		if (mIsMaker) {
+			playerLabel.append(" MAKER");
+		}
+
+		mPlayerLabel.setText(playerLabel.toString());
+
+        if (mTrickCount > 0) {
+            mTrickText.setText("Tricks: " + mTrickCount);
+        } else {
+            mTrickText.setText("");
+        }
+
+		if (!mEnabled.isChecked()) {
+			return;
+		}
+
+        Card[] cards = mPlayer.getCurrentCards();
+
+        if (cards != null) {
+            mExtraCardVisible = cards.length == 6;
+        }
+
 		if (mIsActive) {
 			mShowHide.setEnabled(true);
 			mShowHide.setVisibility(View.VISIBLE);
@@ -211,26 +243,11 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		// only show discard button if we're active and the extra card is visible
 		// let other factors control its enablement
 		mDiscard.setVisibility(mExtraCardVisible && mIsActive ? View.VISIBLE : View.GONE);
-		
-		// set visibility of extra card
-		mCards[DISCARD_SLOT].setVisibility(mExtraCardVisible ? View.VISIBLE : View.INVISIBLE);
 
-		// set label of player
-		StringBuilder playerLabel = new StringBuilder(mPlayer != null ? mPlayer.getName() : "EMPTY");
-		if (mIsDealer) {
-			playerLabel.append(" DEALER");
-		}
-		if (mIsMaker) {
-			playerLabel.append(" MAKER");
-		}
-		
-		if (mTrickCount > 0) {
-			mTrickText.setText("Tricks: " + mTrickCount);
-		} else {
-			mTrickText.setText("");
-		}
-		
-		mPlayerLabel.setText(playerLabel.toString());
+		mDiscard.setEnabled(mShowDiscardButtonEnabled);
+
+		// set visibility of extra card
+		mCards[DISCARD_SLOT].setVisibility(mExtraCardVisible ? View.VISIBLE : View.GONE);
 	}
 	
 	public void setDealer(boolean isDealer) {
@@ -273,7 +290,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		    case R.id.cardSelect5:
 		    case R.id.extra_card_select:
 		    	uncheckOtherRadios(v.getId());
-				mDiscard.setEnabled(true);
+				mShowDiscardButtonEnabled = true;
+				redraw();
 		    	break;
 		    case R.id.discard:
 		    	discard();
@@ -339,17 +357,18 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		}
 		return null;
 	}
-	
+
 	public void showDiscardCard() {
 		setExtraCardVisibility(true);
 		setRadioVisibility(true);
+		mShowDiscardButtonEnabled = false;
 		redraw();
-		mDiscard.setEnabled(false);
 	}
 	
 	public void hideDiscardCard() {
 		setRadioVisibility(false);
-		mExtraCardVisible = false;
+		setExtraCardVisibility(false);
+		mShowDiscardButtonEnabled = false;
 		redraw();
 	}
 
@@ -386,8 +405,40 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		mShowHide.setOnClickListener(this);
 		
 		mTrickText = (TextView) mContent.findViewById(R.id.trick_text);
+
+		mEnabled = (CheckBox) mContent.findViewById(R.id.display_enabled);
+		mEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (!isChecked) {
+                    disableAll();
+                } else {
+                    redraw();
+                }
+			}
+		});
 	}
-	
+
+    /**
+     * Disable and/or hide everything in the UI, but doesn't alter the state of
+     * what should be shown, so if {@link #redraw()} we will draw correctly
+     * based on the enablement state of the various controls of the UI.
+     */
+    private void disableAll() {
+        for (int ptr = 0, limit = mCards.length; ptr < limit; ptr++) {
+            mCards[ptr].setClickable(false);
+        }
+
+        for (int ptr = 0, limit = mCardSelectors.length; ptr < limit; ptr++) {
+            mCardSelectors[ptr].setVisibility(View.GONE);
+        }
+
+        mExtraCardSelector.setVisibility(View.GONE);
+        mDiscard.setVisibility(View.GONE);
+        mShowHide.setVisibility(View.GONE);
+        mCards[DISCARD_SLOT].setVisibility(View.GONE);
+    }
+
 	private void discard() {
 		// find the selected card
 		int offset = -1;
