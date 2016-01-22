@@ -25,6 +25,7 @@ public class JoinDialog extends DialogFragment {
 
         final View content = helium.inflate(R.layout.dialog_join, null);
         final EditText url = (EditText) content.findViewById(R.id.game_url);
+        url.setSelection(url.getText().length());
         bob.setView(content);
         bob.setNegativeButton(R.string.button_cancel, new DialogInterface.OnClickListener() {
             @Override

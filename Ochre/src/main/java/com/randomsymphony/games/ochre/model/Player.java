@@ -28,6 +28,10 @@ public class Player {
 	public String getName() {
 		return mName;
 	}
+
+	public void setName(String name) {
+		mName = name;
+	}
 	
 	public Card[] getCurrentCards() {
 		Card[] cards = new Card[mCards.size()];

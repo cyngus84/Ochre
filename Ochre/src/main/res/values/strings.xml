@@ -23,4 +23,5 @@
     <string name="button_ok">OK</string>
     <string name="shortener_base">http://goo.gl/</string>
     <string name="enabled">Sit</string>
+    <string name="set_player_name">Type name</string>
 </resources>

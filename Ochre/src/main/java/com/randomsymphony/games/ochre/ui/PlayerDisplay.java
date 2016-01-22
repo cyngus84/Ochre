@@ -413,6 +413,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
                 if (!isChecked) {
                     disableAll();
                 } else {
+                    enableRename();
                     redraw();
                 }
 			}
@@ -437,6 +438,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
         mDiscard.setVisibility(View.GONE);
         mShowHide.setVisibility(View.GONE);
         mCards[DISCARD_SLOT].setVisibility(View.GONE);
+        mPlayerLabel.setClickable(false);
     }
 
 	private void discard() {
@@ -475,7 +477,32 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		}
 	}
 
-	private void setRadioVisibility(boolean present) {
-		mRadiosPresent = present;
-	}
+    private void setRadioVisibility(boolean present) {
+        mRadiosPresent = present;
+    }
+
+
+    private void enableRename() {
+        mPlayerLabel.setClickable(true);
+        mPlayerLabel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showRenameDialog();
+            }
+        });
+    }
+
+    private void showRenameDialog() {
+        PlayerNameDialog dialog = PlayerNameDialog.create(mPlayerLabel.getText().toString());
+        dialog.registerListener(new PlayerNameDialog.Listener() {
+            @Override
+            public void onNameSet(String name) {
+                mPlayer.setName(name);
+                redraw();
+                mGameEngine.pushStateUpdate();
+            }
+        });
+        dialog.show(getActivity().getSupportFragmentManager(), null);
+    }
+
 }
