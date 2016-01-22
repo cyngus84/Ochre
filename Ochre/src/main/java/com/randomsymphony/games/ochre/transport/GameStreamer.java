@@ -103,6 +103,19 @@ public class GameStreamer {
         mWorker.quit();
     }
 
+    public void pause() {
+        if (mWorkerHandler != null) {
+            mWorkerHandler.removeMessages(MSG_READ);
+        }
+    }
+
+    public void resume() {
+        if (mWorkerHandler != null) {
+            mWorkerHandler.removeMessages(MSG_READ);
+            mWorkerHandler.sendEmptyMessage(MSG_READ);
+        }
+    }
+
     private void startWorker() {
         if (mWorker == null) {
             mWorker = new HandlerThread("GameStreamer");

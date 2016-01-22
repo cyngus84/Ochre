@@ -96,6 +96,18 @@ public class GameEngine extends Fragment implements StateListener {
 	}
 
     @Override
+    public void onResume() {
+        super.onResume();
+        mStateShuttle.resume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mStateShuttle.pause();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         mStateShuttle.stop();
