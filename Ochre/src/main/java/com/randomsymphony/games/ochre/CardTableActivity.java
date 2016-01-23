@@ -35,6 +35,7 @@ import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -101,6 +102,11 @@ public class CardTableActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        boolean landscape = getResources().getBoolean(R.bool.landscape);
+        setRequestedOrientation(landscape ?
+                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE :
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_card_table);
         initGameState();
