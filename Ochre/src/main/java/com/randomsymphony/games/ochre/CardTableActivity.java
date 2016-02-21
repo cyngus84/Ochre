@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
@@ -31,6 +32,7 @@ import com.randomsymphony.games.ochre.transport.json.RoundConverter;
 import com.randomsymphony.games.ochre.transport.json.TestValues;
 import com.randomsymphony.games.ochre.ui.JoinDialog;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
+import com.randomsymphony.games.ochre.ui.PlayerDisplaysPresenter;
 import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
@@ -66,7 +68,7 @@ public class CardTableActivity extends FragmentActivity {
     private static final String TAG_TABLE_DISPLAY = "com.randomsymphony.games.ochre.TABLE_DISPLAY";
 	private static final File FILE_STATE_SOURCE = new File("/sdcard/ochre/state.txt");
 	private static final File FILE_OUTPUT = new File("/sdcard/ochre/state-new.txt");
-    private static final String URL_BASE = "http://ochre-bucket-store.appspot.com/game_data/";
+    private static final String URL_BASE = null;
     private static final String PARAM_API_KEY = "key";
 
     public static GameState fromReader(Reader reader) {
@@ -99,6 +101,7 @@ public class CardTableActivity extends FragmentActivity {
 	private Button mStart;
     private TextView mShortUrl;
     private Button mJoin;
+    private PlayerDisplaysPresenter mDisplaysPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +118,7 @@ public class CardTableActivity extends FragmentActivity {
         initTrump();
         initPlayers();
         initGameEngine();
+        initPlayerDisplaysPresenter();
         mStart = (Button) findViewById(R.id.start);
         mStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,6 +135,8 @@ public class CardTableActivity extends FragmentActivity {
                     protected void onPostExecute(String shortUrl) {
                         if (!TextUtils.isEmpty(shortUrl)) {
                             updateShortUrl(shortUrl);
+                        } else {
+                            updateShortUrl(getResources().getString(R.string.no_api_key));
                         }
                     }
                 }.execute();
@@ -183,16 +189,24 @@ public class CardTableActivity extends FragmentActivity {
         new LoadAndUpdateState().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, gameUrl);
     }
 
+    /**
+     * Create a short URL for the provided one
+     * @param myurl the URL to shorten
+     * @return The shortened URL or null if it could not be shortened either
+     * due to request error or lack of shortener API key
+     */
     private String createShortUrl(String myurl) {
-        Urlshortener.Builder builder = new Urlshortener.Builder (new NetHttpTransport(),
+        final String apikey = getResources().getString(R.string.shortener_api_key);
+
+        if (TextUtils.isEmpty(apikey)) {
+            return null;
+        }
+
+        Urlshortener.Builder builder = new Urlshortener.Builder(new NetHttpTransport(),
                 AndroidJsonFactory.getDefaultInstance(), null);
         builder.setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
             @Override
             public void initialize(AbstractGoogleClientRequest<?> request) throws IOException {
-                String apikey = getResources().getString(R.string.shortener);
-                if (TextUtils.isEmpty(apikey)) {
-                    throw new RuntimeException("No API key provided!");
-                }
                 request.put(PARAM_API_KEY, apikey);
             }
         });
@@ -379,8 +393,8 @@ public class CardTableActivity extends FragmentActivity {
 		try {
 			converter.writePlayer(writer, mGameState.getPlayers()[0]);
 			writer.flush();
-			Log.d("JMATT", "Player is: " + mGameState.getPlayers()[0].getName() + 
-					" bytes written: " + baos.size());
+			Log.d("JMATT", "Player is: " + mGameState.getPlayers()[0].getName() +
+                    " bytes written: " + baos.size());
 			baos.close();
 			Log.d("JMATT", baos.toString("UTF-8"));
 		} catch (IOException e) {
@@ -441,7 +455,7 @@ public class CardTableActivity extends FragmentActivity {
     private void initTableDisplay() {
     	mTableDisplay = TableDisplay.getInstance(4, TAG_GAME_STATE);
     	getSupportFragmentManager().beginTransaction().replace(R.id.table_display, mTableDisplay,
-    			TAG_TABLE_DISPLAY).commit();
+                TAG_TABLE_DISPLAY).commit();
     }
     
     private void initTrump() {
@@ -481,5 +495,13 @@ public class CardTableActivity extends FragmentActivity {
         	mPlayerWidgets[count].setPlayer(players[count]);
         	mPlayerWidgets[count].setActive(false);
         }
+    }
+
+    private void initPlayerDisplaysPresenter() {
+        mDisplaysPresenter = new PlayerDisplaysPresenter(Arrays.asList(mPlayerWidgets));
+        for (int ptr = 0, limit = mPlayerWidgets.length; ptr < limit; ptr++) {
+            mPlayerWidgets[ptr].setSeatChangeListener(mDisplaysPresenter);
+        }
+        mEngine.setPlayerDisplaysPresenter(mDisplaysPresenter);
     }
 }

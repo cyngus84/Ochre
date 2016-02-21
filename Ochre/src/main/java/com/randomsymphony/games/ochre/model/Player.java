@@ -66,4 +66,19 @@ public class Player {
 	public String getId() {
 		return mInstanceId.toString();
 	}
+
+	@Override
+	public int hashCode() {
+		return mInstanceId.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Player)) {
+			return false;
+		}
+
+		Player that = (Player) o;
+		return that.hashCode() == this.hashCode();
+	}
 }

@@ -20,6 +20,7 @@ import com.randomsymphony.games.ochre.transport.GameStreamer;
 import com.randomsymphony.games.ochre.transport.json.GameStateConverter;
 import com.randomsymphony.games.ochre.transport.json.JsonConverterFactory;
 import com.randomsymphony.games.ochre.ui.PlayerDisplay;
+import com.randomsymphony.games.ochre.ui.PlayerDisplaysPresenter;
 import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
@@ -46,7 +47,7 @@ public class GameEngine extends Fragment implements StateListener {
 	private static final String TAG_SCORE_DISPLAY = "score_board";
 	private static final String TAG_TABLE_DISPLAY = "table_display";
 	private static final String ARG_URL_BASE = "url_base";
-	
+
 	public static GameEngine getInstance(String trumpDisplayTag, String gameStateTag,
 			String scoreBoardTag, String tableDisplayTag, Uri uriBase) {
 		Bundle args = new Bundle();
@@ -80,7 +81,16 @@ public class GameEngine extends Fragment implements StateListener {
      */
     private boolean mBlocked = false;
 
-	@Override
+    /**
+     * Controls the state of player displays, this should *not* be used
+     * directly, but rather use {@link #setPlayerDisplayEnabled(Player)} so
+     * state can be tracked properly if mDisplayPresenter is not available
+     * when you want to indicate the active player.
+     */
+    private PlayerDisplaysPresenter mDisplayPresenter;
+    private Player mDisplayedPlayer = null;
+
+    @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Bundle args = getArguments();
@@ -98,19 +108,25 @@ public class GameEngine extends Fragment implements StateListener {
     @Override
     public void onResume() {
         super.onResume();
-        mStateShuttle.resume();
+        if (mStateShuttle != null) {
+            mStateShuttle.resume();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mStateShuttle.pause();
+        if (mStateShuttle != null) {
+            mStateShuttle.pause();
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mStateShuttle.stop();
+        if (mStateShuttle != null) {
+            mStateShuttle.stop();
+        }
     }
 
 	public void registerStateListener(StateListener listener) {
@@ -171,56 +187,61 @@ public class GameEngine extends Fragment implements StateListener {
                 mStateShuttle = null;
             }
 
-            mStateShuttle = new GameStreamer(mBaseUri, state.getGameId());
-            mStateShuttle.startPolling(new GameStreamer.GameUpdateListener() {
-                @Override
-                public void onNewState(String jsonState) {
-                    try {
-                        if (jsonState == null) {
-                            return;
-                        }
-                        MessageDigest digest = MessageDigest.getInstance("SHA-1");
-                        byte[] strBytes = jsonState.getBytes();
-                        digest.update(strBytes, 0, strBytes.length);
-                        byte[] hash = digest.digest();
-
-                        boolean matchesInbound = false;
-                        if (Arrays.equals(hash, mLastInboundHash)) {
-                            matchesInbound = true;
-                        } else {
-                            Log.d("JMATT", "New hash " + Base64.encodeToString(hash, 0) +
-                                    " old hash " + Base64.encodeToString(mLastInboundHash, 0));
-                        }
-
-                        mLastInboundHash = hash;
-
-                        // see if this hash matches any we sent previously.
-                        boolean matchesOutbound = false;
-                        for (int ptr = 0, limit = mOutboundStateHashes.size();
-                             ptr < limit;
-                             ptr++) {
-                            if (Arrays.equals(hash, mOutboundStateHashes.get(ptr))) {
-                                for (; ptr > -1; ptr--) {
-                                    mOutboundStateHashes.remove(ptr);
-                                }
-                                matchesOutbound = true;
-                                limit = mOutboundStateHashes.size();
+            // if we've been provided a Uri to push states to, push them there
+            // good lord I need to refactor how the GameEngine does state
+            // transport
+            if (mBaseUri != null) {
+                mStateShuttle = new GameStreamer(mBaseUri, state.getGameId());
+                mStateShuttle.startPolling(new GameStreamer.GameUpdateListener() {
+                    @Override
+                    public void onNewState(String jsonState) {
+                        try {
+                            if (jsonState == null) {
+                                return;
                             }
-                        }
+                            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+                            byte[] strBytes = jsonState.getBytes();
+                            digest.update(strBytes, 0, strBytes.length);
+                            byte[] hash = digest.digest();
 
-                        if (matchesInbound || matchesOutbound) {
-                            return;
+                            boolean matchesInbound = false;
+                            if (Arrays.equals(hash, mLastInboundHash)) {
+                                matchesInbound = true;
+                            } else {
+                                Log.d("JMATT", "New hash " + Base64.encodeToString(hash, 0) +
+                                        " old hash " + Base64.encodeToString(mLastInboundHash, 0));
+                            }
+
+                            mLastInboundHash = hash;
+
+                            // see if this hash matches any we sent previously.
+                            boolean matchesOutbound = false;
+                            for (int ptr = 0, limit = mOutboundStateHashes.size();
+                                 ptr < limit;
+                                 ptr++) {
+                                if (Arrays.equals(hash, mOutboundStateHashes.get(ptr))) {
+                                    for (; ptr > -1; ptr--) {
+                                        mOutboundStateHashes.remove(ptr);
+                                    }
+                                    matchesOutbound = true;
+                                    limit = mOutboundStateHashes.size();
+                                }
+                            }
+
+                            if (matchesInbound || matchesOutbound) {
+                                return;
+                            }
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
                         }
-                    } catch (NoSuchAlgorithmException e) {
-                        e.printStackTrace();
+                        Log.d("JMATT", "State changed on server.");
+                        setGameState(CardTableActivity.fromReader(new StringReader(jsonState)), false);
                     }
-                    Log.d("JMATT", "State changed on server.");
-                    setGameState(CardTableActivity.fromReader(new StringReader(jsonState)), false);
-                }
-            });
+                });
 
-            // if this is a new game, always push an update
-            pushStateUpdate();
+                // if this is a new game, always push an update
+                pushStateUpdate();
+            }
         } else if (pushUpdate) {
             pushStateUpdate();
         }
@@ -275,8 +296,8 @@ public class GameEngine extends Fragment implements StateListener {
 		newRound.trump = possibleTrump;
         mState.setGamePhase(GameState.Phase.ORDER_UP);
 
-        setPlayerDisplayEnabled(getNextPlayer(), true);
-		
+        activateNextPlayerDisplay();
+
 		mTrumpDisplay.setToOrderUpMode();
 		mCardTable.clearPlayedCards();
 
@@ -345,15 +366,23 @@ public class GameEngine extends Fragment implements StateListener {
     }
 
     /**
-     * Called to set all displays to hidden and then activate the appropriate
-     * one.
+     * Activates the next player display
      */
     private void activateNextPlayerDisplay() {
-        for (PlayerDisplay display : mPlayerDisplays.values()) {
-            display.setActive(false);
-        }
+        setPlayerDisplayEnabled(getNextPlayer());
+    }
 
-        setPlayerDisplayEnabled(getNextPlayer(), true);
+    /**
+     * Should be used to set the currently displayed player
+     * @param player
+     */
+    private void setPlayerDisplayEnabled(Player player) {
+        mDisplayedPlayer = player;
+        if (mDisplayPresenter != null) {
+            mDisplayPresenter.setCurrentPlayer(player);
+        } else {
+            Log.e("JMATT", "Unable activate player display, no presenter available.");
+        }
     }
 
 	public void setCurrentCandidateTrump(Card card) {
@@ -404,7 +433,7 @@ public class GameEngine extends Fragment implements StateListener {
 
 	public void pushStateUpdate() {
         String updateJson = stateToJsonString(mState);
-        if (updateJson != null) {
+        if (updateJson != null && mStateShuttle != null) {
             byte[] hash = hashFromJsonState(updateJson);
 
             if (Arrays.equals(mLastInboundHash, hash)) {
@@ -487,9 +516,6 @@ public class GameEngine extends Fragment implements StateListener {
 		currentRound.alone = alone;
 		currentRound.tricks.add(new Play[currentRound.getActivePlayerCount()]);
 		
-		// disable display of order-er
-		setPlayerDisplayEnabled(maker, false);
-		
 		// set trump
 		if (mState.getGamePhase() == GameState.Phase.ORDER_UP) {
             // trump has already been set optimistically to the dealt trump
@@ -501,7 +527,7 @@ public class GameEngine extends Fragment implements StateListener {
 				currentRound.dealer.addCard(currentRound.trump);
 				PlayerDisplay display = getPlayerDisplay(currentRound.dealer);
 				display.showDiscardCard();
-				setPlayerDisplayEnabled(currentRound.dealer, true);
+				setPlayerDisplayEnabled(currentRound.dealer);
                 mState.setGamePhase(Phase.DEALER_DISCARD);
 			} else {
 				startRound();
@@ -538,7 +564,6 @@ public class GameEngine extends Fragment implements StateListener {
         dealer.hideDiscardCard();
 		dealer.redraw();
 		
-		setPlayerDisplayEnabled(currentRound.dealer, false);
 		startRound();
 
         if (unblock) {
@@ -557,7 +582,7 @@ public class GameEngine extends Fragment implements StateListener {
 	private void startRound() {
         mState.setGamePhase(GameState.Phase.PLAY);
 		Player roundStarter = getNextPlayer();
-		setPlayerDisplayEnabled(roundStarter, true);
+		setPlayerDisplayEnabled(roundStarter);
 	}
 	
 	private PlayerDisplay getPlayerDisplay(Player forPlayer) {
@@ -569,10 +594,13 @@ public class GameEngine extends Fragment implements StateListener {
 		
 		throw new RuntimeException("We shouldn't have gotten here.");
 	}
-	
-	private void setPlayerDisplayEnabled(Player player, boolean enabled) {
-		getPlayerDisplay(player).setActive(enabled);
-	}
+
+    public void setPlayerDisplaysPresenter(PlayerDisplaysPresenter presenter) {
+        mDisplayPresenter = presenter;
+        if (mDisplayedPlayer != null) {
+            setPlayerDisplayEnabled(mDisplayedPlayer);
+        }
+    }
 	
 	private Player getNextPlayer() {
 		Round currentRound = mState.getCurrentRound();
@@ -757,10 +785,6 @@ public class GameEngine extends Fragment implements StateListener {
 
     private void updateActivePlayer() {
         Round activeRound = mState.getCurrentRound();
-        // set active player
-        for (PlayerDisplay display : mPlayerDisplays.values()) {
-            display.setActive(false);
-        }
 
         // set trump display based on current state of trump selection
         if (activeRound != null) {
@@ -773,7 +797,7 @@ public class GameEngine extends Fragment implements StateListener {
                 case DEALER_DISCARD:
                     PlayerDisplay display = getPlayerDisplay(activeRound.dealer);
                     display.showDiscardCard();
-                    display.setActive(true);
+                    setPlayerDisplayEnabled(display.getPlayer());
                     break;
                 case PLAY:
                 default:
@@ -933,11 +957,7 @@ public class GameEngine extends Fragment implements StateListener {
         Player nextPlayer = getNthPlayerInTrick(currentRound.dealer, positionFromDealer,
                 currentRound);
 
-        // disable current player
-        setPlayerDisplayEnabled(currentPlayer, false);
-
-        // activate the next player
-        setPlayerDisplayEnabled(nextPlayer, true);
+        setPlayerDisplayEnabled(nextPlayer);
     }
 
     /**

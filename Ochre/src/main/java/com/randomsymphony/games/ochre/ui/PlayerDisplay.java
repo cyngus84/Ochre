@@ -8,6 +8,7 @@ import com.randomsymphony.games.ochre.logic.StateListener;
 import com.randomsymphony.games.ochre.model.Card;
 import com.randomsymphony.games.ochre.model.Player;
 
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -27,7 +28,6 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private static final int DISCARD_SLOT = 5;
 
 	/**
-	 * @param tag The fragment tag under which the game engine can be found.
 	 * @param isWide Whether this should be a "wide" or "tall" display,
 	 * will determine which layout is used when drawing the player display.
 	 */
@@ -37,6 +37,10 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		args.putBoolean(KEY_WIDE_DISPLAY, isWide);
 		display.setArguments(args);
 		return display;
+	}
+
+	public interface SeatedChangeListener {
+		public void onSeatChange(PlayerDisplay display, boolean seated);
 	}
 	
 	private int LAYOUT_ID;
@@ -50,6 +54,10 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private RadioButton[] mCardSelectors = new RadioButton[5];
 	private RadioButton mExtraCardSelector;
 	private Button mDiscard;
+	/**
+	 * Controls whether the cards the player currently has should be shown or
+	 * hidden.
+	 */
 	private boolean mRevealCards = false;
 	private Button mShowHide;
 	private boolean mIsMaker;
@@ -59,8 +67,18 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private int mTrickCount = 0;
 	private boolean mWideDisplay;
 	private GameState.Phase mPhase = GameState.Phase.NONE;
+	/**
+	 * Controls whether or not the show/hide controls are enabled
+	 */
 	private CheckBox mEnabled;
     private boolean mShowDiscardButtonEnabled = false;
+
+	/**
+	 * Controls whether or not controls relating to making a play are enabled.
+	 */
+	private boolean mIsPlayersTurn = false;
+
+	private SeatedChangeListener mListener = null;
 
 	public PlayerDisplay() {
 		
@@ -117,8 +135,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	}
 	
 	/**
-	 * Set whether or not the current player is the active one. Only the active
-	 * player will have their controls enabled.
+	 * Set whether or not the current player is the active one. Only when the
+	 * player is active will they be able to show/hide their cards
 	 */
 	public void setActive(boolean isActive) {
 		if (!isActive) {
@@ -139,6 +157,19 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	public void setGameEngine(GameEngine engine) {
 		mGameEngine = engine;
 	}
+
+    public void setSeatChangeListener(SeatedChangeListener listener) {
+        mListener = listener;
+    }
+
+    public void setIsPlayersTurn(boolean isTurn) {
+        if (mIsPlayersTurn == isTurn) {
+            return;
+        } else {
+            mIsPlayersTurn = isTurn;
+            redraw();
+        }
+    }
 	
 	/**
 	 * Cause the player's view to be updated based on the {@link Player}. Should
@@ -149,6 +180,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 			Log.d("JMATT", "Not resumed, skipping redraw.");
 			return;
 		}
+
+        boolean isSeated = mEnabled.isChecked();
 
 		// set label of player
 		StringBuilder playerLabel = new StringBuilder(mPlayer != null ? mPlayer.getName() : "EMPTY");
@@ -167,50 +200,48 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
             mTrickText.setText("");
         }
 
-		if (!mEnabled.isChecked()) {
-			return;
-		}
-
         Card[] cards = mPlayer.getCurrentCards();
 
         if (cards != null) {
             mExtraCardVisible = cards.length == 6;
         }
 
-		if (mIsActive) {
+		if (mIsActive && isSeated) {
 			mShowHide.setEnabled(true);
 			mShowHide.setVisibility(View.VISIBLE);
+
+			if (mRevealCards) {
+				mShowHide.setText(R.string.hide_cards);
+			} else {
+				mShowHide.setText(R.string.show_cards);
+			}
+
 		} else {
 			mShowHide.setEnabled(false);
 			mShowHide.setVisibility(View.GONE);
 		}
-		
-		if (mRevealCards) {
-			mShowHide.setText(R.string.hide_cards);
-		} else {
-			mShowHide.setText(R.string.show_cards);
-		}
+
 		
 		String cardList = "";
 		if (mPlayer != null) {
+			Resources res = getResources();
 			Card[] playerCards = mPlayer.getCurrentCards();
 			for (int ptr = 0; ptr < mCards.length; ptr++) {
 				Button cardButton = mCards[ptr];
-				
-				if (mIsActive && mRevealCards) {
-					// does this slot contain a card?
+
+				if (isSeated && mRevealCards) {
 					if (ptr < playerCards.length) {
 						Card target = playerCards[ptr];
 
 						// if there is no card and we're active, its only
 						// clickable in play mode
 						if (mPhase == GameState.Phase.PLAY) {
-							cardButton.setClickable(true);
+							cardButton.setClickable(mIsPlayersTurn);
 						} else {
 							cardButton.setClickable(false);
 						}
 
-						Card.formatButtonAsCard(mCards[ptr], target, getResources());
+						Card.formatButtonAsCard(mCards[ptr], target, res);
 					} else {
 						if (ptr < 6) {
 							cardButton.setClickable(false);
@@ -230,24 +261,36 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		} else {
 			throw new RuntimeException();
 		}
-		
+
+        // true if it is both this player's turn and the player is seated
+        boolean isSeatedAndTurn = isSeated && mIsPlayersTurn;
+
+        // the controls below here should only be present/active if
+        // isSeatedAndTurn is true AND the widget's other control bits are set
+        // appropriately
+
 		// only show the card selectors if we're active and radios are set to
 		// present
 		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
-			mCardSelectors[ptr].setVisibility(mRadiosPresent && mIsActive ? View.VISIBLE : View.GONE);
+			mCardSelectors[ptr].setVisibility(
+                    isSeatedAndTurn && mRadiosPresent ? View.VISIBLE : View.GONE);
 		}
-		
+
 		// only show the extra card selector if we're active and its set to visible
-		mExtraCardSelector.setVisibility(mExtraCardVisible && mIsActive ? View.VISIBLE : View.GONE);
-		
+		mExtraCardSelector.setVisibility(
+                isSeatedAndTurn && mExtraCardVisible ? View.VISIBLE : View.GONE);
+
 		// only show discard button if we're active and the extra card is visible
 		// let other factors control its enablement
-		mDiscard.setVisibility(mExtraCardVisible && mIsActive ? View.VISIBLE : View.GONE);
+		mDiscard.setVisibility(
+                isSeatedAndTurn && mExtraCardVisible ? View.VISIBLE : View.GONE);
 
-		mDiscard.setEnabled(mShowDiscardButtonEnabled);
+		mDiscard.setEnabled(
+                isSeatedAndTurn && mShowDiscardButtonEnabled);
 
 		// set visibility of extra card
-		mCards[DISCARD_SLOT].setVisibility(mExtraCardVisible ? View.VISIBLE : View.GONE);
+		mCards[DISCARD_SLOT].setVisibility(
+                isSeatedAndTurn && mExtraCardVisible ? View.VISIBLE : View.GONE);
 	}
 	
 	public void setDealer(boolean isDealer) {
@@ -325,8 +368,15 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	@Override
 	public void onStateChange(Phase newPhase) {
 		mPhase = newPhase;
-		
-		switch (newPhase) {
+
+        // strictly speaking we only care about radio presence when it is the
+        // player's turn. However, we don't use that here to determine whether
+        // we should set the value of radio visibility because we don't want to
+        // impose the requirement that the turn updates come before state
+        // change updates. Instead we'd use both the radio visibility value AND
+        // whether it is currently the player's turn to determine whether to
+        // show the radios
+        switch (newPhase) {
 		    case PICK_TRUMP:
 			case DEALER_DISCARD:
 			   setRadioVisibility(true);
@@ -414,8 +464,12 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
                     disableAll();
                 } else {
                     enableRename();
-                    redraw();
                 }
+                redraw();
+
+				if (mListener != null) {
+					mListener.onSeatChange(PlayerDisplay.this, isChecked);
+				}
 			}
 		});
 	}
@@ -439,6 +493,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
         mShowHide.setVisibility(View.GONE);
         mCards[DISCARD_SLOT].setVisibility(View.GONE);
         mPlayerLabel.setClickable(false);
+        mRevealCards = false;
     }
 
 	private void discard() {
