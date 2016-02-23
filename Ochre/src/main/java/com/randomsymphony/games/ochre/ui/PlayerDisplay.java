@@ -84,6 +84,10 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		
 	}
 
+	public void setCheckboxEnabled(boolean enabled) {
+		mEnabled.setEnabled(enabled);
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

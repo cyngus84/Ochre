@@ -75,6 +75,13 @@ public class TrumpDisplay extends Fragment implements View.OnClickListener {
 		mSetTrump.setText(R.string.button_order_up);
 		mAlone.setEnabled(false);
 	}
+
+	public void setEnabled(boolean enabled) {
+		mPass.setEnabled(enabled);
+		mSetTrump.setEnabled(enabled);
+		mSetTrump.setEnabled(enabled);
+		mAlone.setEnabled(enabled);
+	}
 	
 	public void reset() {
 		setToOrderUpMode();		

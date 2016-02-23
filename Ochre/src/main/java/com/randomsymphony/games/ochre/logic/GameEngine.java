@@ -298,7 +298,6 @@ public class GameEngine extends Fragment implements StateListener {
 
         activateNextPlayerDisplay();
 
-		mTrumpDisplay.setToOrderUpMode();
 		mCardTable.clearPlayedCards();
 
         if (unblock) {
@@ -416,13 +415,16 @@ public class GameEngine extends Fragment implements StateListener {
 			
 			mState.setGamePhase(GameState.Phase.PICK_TRUMP);
 			mTrumpDisplay.setToPickMode();
-		} else if (currentRound.trumpPasses == currentRound.getActivePlayerCount() * 2 - 1) {
-			// disable the pass button if the next player is the dealer and
-			// this is the 7th pass
-			mTrumpDisplay.disablePass();
 		}
 
         enableNextTrumpPicker();
+
+        if (currentRound.trumpPasses == currentRound.getActivePlayerCount() * 2 - 1) {
+            // disable the pass button if the next player is the dealer and
+            // this is the 7th pass
+            mTrumpDisplay.disablePass();
+        }
+
 		redrawAllPlayers();
 
         if (unblock) {
@@ -600,6 +602,7 @@ public class GameEngine extends Fragment implements StateListener {
         if (mDisplayedPlayer != null) {
             setPlayerDisplayEnabled(mDisplayedPlayer);
         }
+        registerStateListener(mDisplayPresenter);
     }
 	
 	private Player getNextPlayer() {

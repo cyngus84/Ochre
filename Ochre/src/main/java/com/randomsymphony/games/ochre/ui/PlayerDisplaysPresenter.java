@@ -1,28 +1,31 @@
 package com.randomsymphony.games.ochre.ui;
 
+import com.randomsymphony.games.ochre.logic.GameState;
+import com.randomsymphony.games.ochre.logic.StateListener;
 import com.randomsymphony.games.ochre.model.Player;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by justinm on 2/12/16.
  */
-public class PlayerDisplaysPresenter implements PlayerDisplay.SeatedChangeListener {
+public class PlayerDisplaysPresenter implements PlayerDisplay.SeatedChangeListener, StateListener {
 
     private LinkedHashMap<Player, PlayerDisplay> mPlayerDisplayMap =
             new LinkedHashMap<Player, PlayerDisplay>();
     private LinkedHashSet<Player> mSeatedPlayers = new LinkedHashSet<Player>();
+    private Player mCurrentPlayer = null;
+    private TrumpDisplay mTrumpDisplay = null;
 
-
-    public PlayerDisplaysPresenter(List<PlayerDisplay> displays) {
+    public PlayerDisplaysPresenter(List<PlayerDisplay> displays, TrumpDisplay trumpDisplay) {
         for (PlayerDisplay display : displays) {
             mPlayerDisplayMap.put(display.getPlayer(), display);
         }
+        mTrumpDisplay = trumpDisplay;
     }
-
-    private Player mCurrentPlayer = null;
 
     public void setCurrentPlayer(Player player) {
         mCurrentPlayer = player;
@@ -48,6 +51,7 @@ public class PlayerDisplaysPresenter implements PlayerDisplay.SeatedChangeListen
                 display.setActive(!isHotSeatMode);
             }
         }
+        onStateChange(mPhase);
     }
 
     public void setPlayerSeated(Player player, boolean seated) {
@@ -65,5 +69,38 @@ public class PlayerDisplaysPresenter implements PlayerDisplay.SeatedChangeListen
     @Override
     public void onSeatChange(PlayerDisplay display, boolean seated) {
         setPlayerSeated(display.getPlayer(), seated);
+    }
+
+    public boolean isCurrentPlayerSeated() {
+        return mSeatedPlayers.contains(mCurrentPlayer);
+    }
+
+    private GameState.Phase mPhase = GameState.Phase.NONE;
+
+    @Override
+    public void onStateChange(GameState.Phase newPhase) {
+        if (isCurrentPlayerSeated()) {
+            // configure trump display
+            switch (newPhase) {
+                case PICK_TRUMP:
+                    mTrumpDisplay.setToPickMode();
+                    break;
+                case ORDER_UP:
+                    mTrumpDisplay.setToOrderUpMode();
+                    break;
+                case DEALER_DISCARD:
+                case PLAY:
+                    mTrumpDisplay.setToPlayMode();
+                    break;
+            }
+        } else {
+            mTrumpDisplay.setEnabled(false);
+        }
+
+        for (Map.Entry<Player, PlayerDisplay> entry : mPlayerDisplayMap.entrySet()) {
+            entry.getValue().setCheckboxEnabled(newPhase != GameState.Phase.NONE);
+        }
+
+        mPhase = newPhase;
     }
 }
