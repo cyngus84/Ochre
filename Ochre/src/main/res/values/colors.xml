@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="player_display_inactive">#00FFFFFF</color>
+    <color name="player_display_active">#627C84EC</color>
+</resources>

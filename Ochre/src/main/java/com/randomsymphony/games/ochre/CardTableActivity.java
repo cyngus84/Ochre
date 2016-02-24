@@ -361,7 +361,7 @@ public class CardTableActivity extends FragmentActivity {
 		RoundConverter converter = 
 				(RoundConverter) new JsonConverterFactory().getConverter(
 						JsonConverterFactory.TYPE_ROUND);
-		Round decoded = converter.readRound(new JsonReader(new StringReader(state)), players);
+        Round decoded = converter.readRound(new JsonReader(new StringReader(state)), players);
 		return decoded;
     }
     
@@ -392,8 +392,8 @@ public class CardTableActivity extends FragmentActivity {
 						JsonConverterFactory.TYPE_PLAYER);
 		try {
 			converter.writePlayer(writer, mGameState.getPlayers()[0]);
-			writer.flush();
-			Log.d("JMATT", "Player is: " + mGameState.getPlayers()[0].getName() +
+            writer.flush();
+            Log.d("JMATT", "Player is: " + mGameState.getPlayers()[0].getName() +
                     " bytes written: " + baos.size());
 			baos.close();
 			Log.d("JMATT", baos.toString("UTF-8"));
@@ -407,8 +407,8 @@ public class CardTableActivity extends FragmentActivity {
     	ByteArrayInputStream input = new ByteArrayInputStream(
     			TestValues.PLAYER_WITH_CARDS.getBytes());
     	JsonReader reader = new JsonReader(new InputStreamReader(input));
-    	try {
-    		Log.d("JMATT", "First token type: " + reader.peek());
+        try {
+            Log.d("JMATT", "First token type: " + reader.peek());
     		// start the outer open object
     		reader.beginObject();
     		String propName = reader.nextName();
@@ -498,7 +498,8 @@ public class CardTableActivity extends FragmentActivity {
     }
 
     private void initPlayerDisplaysPresenter() {
-        mDisplaysPresenter = new PlayerDisplaysPresenter(Arrays.asList(mPlayerWidgets));
+        mDisplaysPresenter =
+                new PlayerDisplaysPresenter(Arrays.asList(mPlayerWidgets), mTrumpWidget);
         for (int ptr = 0, limit = mPlayerWidgets.length; ptr < limit; ptr++) {
             mPlayerWidgets[ptr].setSeatChangeListener(mDisplaysPresenter);
         }

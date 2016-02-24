@@ -187,6 +187,12 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 
         boolean isSeated = mEnabled.isChecked();
 
+		Resources res = getActivity().getResources();
+
+		mContent.setBackgroundColor(mIsPlayersTurn ?
+				res.getColor(R.color.player_display_active) :
+				res.getColor(R.color.player_display_inactive));
+
 		// set label of player
 		StringBuilder playerLabel = new StringBuilder(mPlayer != null ? mPlayer.getName() : "EMPTY");
 		if (mIsDealer) {
@@ -228,7 +234,6 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 		
 		String cardList = "";
 		if (mPlayer != null) {
-			Resources res = getResources();
 			Card[] playerCards = mPlayer.getCurrentCards();
 			for (int ptr = 0; ptr < mCards.length; ptr++) {
 				Button cardButton = mCards[ptr];
