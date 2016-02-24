@@ -24,7 +24,7 @@
         android:id="@+id/trick_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/player_name"
+        android:layout_toRightOf="@id/display_enabled"
         android:layout_alignTop="@id/player_name"
         android:layout_marginLeft="@dimen/trick_margin_left"
         android:layout_marginBottom="@dimen/player_name_margin" />  
