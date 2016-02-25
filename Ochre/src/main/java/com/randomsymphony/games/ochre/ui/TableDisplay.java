@@ -76,25 +76,20 @@ public class TableDisplay extends Fragment {
     }
     
     public void setTrumpSuit(int suit) {
-    	switch (suit) {
-    	    case Card.SUIT_CLUBS:
-    		    mTrumpCard.setText("\u2663");
-    		    break;
-    	    case Card.SUIT_HEARTS:
-    	        mTrumpCard.setText("\u2764");
-    	        break;
-    	    case Card.SUIT_DIAMONDS:
-    	        mTrumpCard.setText("\u2666");
-    	        break;
-    	    case Card.SUIT_SPADES:
-    	        mTrumpCard.setText("\u2660");
-    	        break;
-    	}
-    	
-		if (suit == Card.SUIT_DIAMONDS || suit == Card.SUIT_HEARTS) {
-			mTrumpCard.setBackgroundColor(getResources().getColor(R.color.red_card));
-		} else {
-			mTrumpCard.setBackgroundColor(getResources().getColor(R.color.black_card));
+		mTrumpCard.setText("");
+		switch (suit) {
+			case Card.SUIT_CLUBS:
+				mTrumpCard.setBackgroundResource(R.drawable.club);
+				break;
+			case Card.SUIT_DIAMONDS:
+				mTrumpCard.setBackgroundResource(R.drawable.diamond);
+				break;
+			case Card.SUIT_HEARTS:
+				mTrumpCard.setBackgroundResource(R.drawable.heart);
+				break;
+			case Card.SUIT_SPADES:
+				mTrumpCard.setBackgroundResource(R.drawable.spade);
+				break;
 		}
 		mTrumpCard.setVisibility(View.VISIBLE);
     }
