@@ -26,6 +26,7 @@
         <item name="android:layout_marginRight">@dimen/margin_card_button</item>
         <item name="android:minWidth">@dimen/card_min_size</item>
         <item name="android:padding">@dimen/card_padding</item>
+        <item name="android:textColor">@android:color/white</item>
     </style>
     
     <style name="CardButton.PlayedCard">

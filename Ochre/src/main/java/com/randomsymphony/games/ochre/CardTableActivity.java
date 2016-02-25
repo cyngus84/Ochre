@@ -480,10 +480,12 @@ public class CardTableActivity extends FragmentActivity {
     }
     
     private void initPlayers() {
+        boolean useWide = getResources().getBoolean(R.bool.use_wide);
+
     	mPlayerWidgets[0] = PlayerDisplay.getInstance(false);
-    	mPlayerWidgets[1] = PlayerDisplay.getInstance(true);
+    	mPlayerWidgets[1] = PlayerDisplay.getInstance(useWide);
     	mPlayerWidgets[2] = PlayerDisplay.getInstance(false);
-    	mPlayerWidgets[3] = PlayerDisplay.getInstance(true);
+    	mPlayerWidgets[3] = PlayerDisplay.getInstance(useWide);
     	
     	getSupportFragmentManager().beginTransaction().replace(R.id.player0, mPlayerWidgets[0]).commit();
     	getSupportFragmentManager().beginTransaction().replace(R.id.player1, mPlayerWidgets[1]).commit();

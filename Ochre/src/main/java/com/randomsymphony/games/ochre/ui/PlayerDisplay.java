@@ -262,7 +262,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 						}
 					}
 				} else {
-					cardButton.setText("*");
+					cardButton.setText("");
 					cardButton.setBackgroundColor(getResources().getColor(R.color.disabled_card));
 					cardButton.setClickable(false);
 				}

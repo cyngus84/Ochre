@@ -129,11 +129,22 @@ public class Card {
 	}
 	
 	public static void formatButtonAsCard(Button button, Card card, Resources res) {
-		button.setText(card.toString());
-		if (card.getSuit() == Card.SUIT_DIAMONDS || card.getSuit() == Card.SUIT_HEARTS) {
-			button.setBackgroundColor(res.getColor(R.color.red_card));
-		} else {
-			button.setBackgroundColor(res.getColor(R.color.black_card));
+		// take the number of the card, leaving the suit behind
+		button.setText(card.toString().split(" ")[0]);
+
+		switch (card.getSuit()) {
+			case Card.SUIT_CLUBS:
+				button.setBackgroundResource(R.drawable.club);
+				break;
+			case Card.SUIT_DIAMONDS:
+				button.setBackgroundResource(R.drawable.diamond);
+				break;
+			case Card.SUIT_HEARTS:
+				button.setBackgroundResource(R.drawable.heart);
+				break;
+			case Card.SUIT_SPADES:
+				button.setBackgroundResource(R.drawable.spade);
+				break;
 		}
 	}
 }
