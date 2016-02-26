@@ -13,11 +13,6 @@
         android:orientation="vertical"
         tools:context=".CardTableActivity">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="HELLO WORLD" />
-
         <FrameLayout
             android:id="@+id/trump_controls"
             android:layout_width="wrap_content"
