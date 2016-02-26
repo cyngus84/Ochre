@@ -8,10 +8,14 @@ import com.randomsymphony.games.ochre.model.Player;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
+
+import java.util.Arrays;
 
 public class TableDisplay extends Fragment {
 
@@ -38,6 +42,9 @@ public class TableDisplay extends Fragment {
 	private Button[] mPlayedCards;
 	private Button mTrumpCard;
 	private GameState mGameState;
+    private Player[] mPlayers;
+    private Player.ChangeListener[] mListeners;
+    private TextView[] mPlayerNames = new TextView[4];
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -46,13 +53,45 @@ public class TableDisplay extends Fragment {
 		mGameState = (GameState) getFragmentManager().findFragmentByTag(
 				getArguments().getString(ARG_GAME_STATE));
 	}
-	
+
+    /**
+     * Set the players in the game, should be in order of play
+     * @param players
+     */
+    public void setPlayers(Player[] players) {
+        // if we don't have any label views, ignore
+        if (mPlayerNames[0] == null) {
+            return;
+        }
+
+        if (mPlayers != null) {
+            for (int ptr = 0, limit = mPlayers.length; ptr < limit; ptr++) {
+                mPlayers[ptr].removeListener(mListeners[ptr]);
+            }
+        }
+
+        mPlayers = Arrays.copyOf(players, players.length);
+        mListeners = new Player.ChangeListener[mPlayers.length];
+        for (int ptr = 0, limit = mPlayers.length; ptr < limit; ptr++) {
+            final int idx = ptr;
+            mListeners[ptr] = new Player.ChangeListener() {
+                @Override
+                public void onNameChange(String newName) {
+                    updatePlayer(idx, newName);
+                }
+            };
+            mPlayers[ptr].addListener(mListeners[ptr]);
+            updatePlayer(ptr, mPlayers[ptr].getName());
+        }
+    }
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		mContent = inflater.inflate(R.layout.fragment_card_table, null);
 		initPlayedCards();
         mTrumpCard = (Button) mContent.findViewById(R.id.candidate_trump);
+        initPlayerTextViews();
 		return mContent;
 	}
 
@@ -116,5 +155,16 @@ public class TableDisplay extends Fragment {
     	mPlayedCards[1] = (Button) mContent.findViewById(R.id.player1_card);
     	mPlayedCards[2] = (Button) mContent.findViewById(R.id.player2_card);
     	mPlayedCards[3] = (Button) mContent.findViewById(R.id.player3_card);
+    }
+
+    private void updatePlayer(int idx, String name) {
+        mPlayerNames[idx].setText(name);
+    }
+
+    private void initPlayerTextViews() {
+        mPlayerNames[0] = (TextView) mContent.findViewById(R.id.player0_name);
+        mPlayerNames[1] = (TextView) mContent.findViewById(R.id.player1_name);
+        mPlayerNames[2] = (TextView) mContent.findViewById(R.id.player2_name);
+        mPlayerNames[3] = (TextView) mContent.findViewById(R.id.player3_name);
     }
 }

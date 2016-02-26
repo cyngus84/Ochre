@@ -75,7 +75,7 @@
         android:text="@string/join"/>
     <Button
         android:id="@+id/save"
-        android:visibility="visible"
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/join"
@@ -87,5 +87,6 @@
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/save"
         android:layout_alignTop="@id/start"
+        android:visibility="gone"
         android:text="@string/load"/>
 </RelativeLayout>

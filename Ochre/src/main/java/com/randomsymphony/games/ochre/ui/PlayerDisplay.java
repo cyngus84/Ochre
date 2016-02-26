@@ -557,7 +557,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
     }
 
     private void showRenameDialog() {
-        PlayerNameDialog dialog = PlayerNameDialog.create(mPlayerLabel.getText().toString());
+        PlayerNameDialog dialog = PlayerNameDialog.create(mPlayer.getName());
         dialog.registerListener(new PlayerNameDialog.Listener() {
             @Override
             public void onNameSet(String name) {

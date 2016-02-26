@@ -5,10 +5,15 @@ import java.util.UUID;
 
 public class Player {
 
+	public interface ChangeListener {
+		public void onNameChange(String newName);
+	}
+
 	private String mName;
 	private ArrayList<Card> mCards = new ArrayList<Card>();
 	private final UUID mInstanceId;
-	
+	private ArrayList<ChangeListener> mListeners = new ArrayList<ChangeListener>();
+
 	public Player(String name) {
 		this(name, new Card[0]);
 	}
@@ -31,6 +36,7 @@ public class Player {
 
 	public void setName(String name) {
 		mName = name;
+		notifyListeners();
 	}
 	
 	public Card[] getCurrentCards() {
@@ -54,7 +60,15 @@ public class Player {
 			mCards.get(ptr).setVisible(false);
 		}
 	}
-	
+
+	public void addListener(ChangeListener listener) {
+		mListeners.add(listener);
+	}
+
+	public void removeListener(ChangeListener listener) {
+		mListeners.remove(listener);
+	}
+
 	public void discardHand() {
 		mCards.clear();
 	}
@@ -80,5 +94,11 @@ public class Player {
 
 		Player that = (Player) o;
 		return that.hashCode() == this.hashCode();
+	}
+
+	private void notifyListeners() {
+		for (int ptr = 0, limit = mListeners.size(); ptr < limit; ptr++) {
+			mListeners.get(ptr).onNameChange(mName);
+		}
 	}
 }

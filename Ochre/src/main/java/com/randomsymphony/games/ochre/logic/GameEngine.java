@@ -155,6 +155,14 @@ public class GameEngine extends Fragment implements StateListener {
 
         Log.d("JMATT", "Game has id: " + state.getGameId().toString());
         GameState oldState = mState;
+
+        if (oldState != null) {
+            Player[] oldPlayers = oldState.getPlayers();
+            for (int ptr = 0, limit = oldPlayers.length; ptr < limit; ptr++) {
+                oldPlayers[ptr].removeListener(mNameChangeListener);
+            }
+        }
+
         mState = state;
         mState.setPhaseListener(this);
 
@@ -819,12 +827,21 @@ public class GameEngine extends Fragment implements StateListener {
         mScoreBoard.setTeamTwoScore(team2);
     }
 
+    private final Player.ChangeListener mNameChangeListener = new Player.ChangeListener() {
+        @Override
+        public void onNameChange(String newName) {
+            setTeamNames();
+        }
+    };
+
     /**
      * Update the trick counts displayed for the players.
      */
     private void updatePlayerDisplays() {
         Round activeRound = mState.getCurrentRound();
         Player[] players = mState.getPlayers();
+
+        mCardTable.setPlayers(players);
         // configure player displays by setting the Player on the player display,
         // redraw should be automatic
         GameState.Phase phase = mState.getGamePhase();
@@ -834,6 +851,7 @@ public class GameEngine extends Fragment implements StateListener {
 
         for (int ptr = 0, limit = players.length; ptr < limit; ptr++) {
             Player target = players[ptr];
+            target.addListener(mNameChangeListener);
             PlayerDisplay display = mPlayerDisplays.get(ptr);
             display.setPlayer(target);
             if (activeRound != null) {
