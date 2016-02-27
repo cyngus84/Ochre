@@ -6,3 +6,6 @@ In the multi-device scenario a given device may subscribe to a game as one or mo
 Another common scenario would be for four different people all in different physical locations to each subscribe as a player entity and game board entity. In this case they would see their cards, the board, and some minimal representation of the other players.
 
 All source code is released under Apache 2.0 unless otherwise noted.
+
+UPDATE 26-02-2016
+I'm declaring 7eec3d4 as v0.1! This version implements everything I think is minimally required for both, local, hot-seat mode, and over-the-internet multi-player mode. Soon I will upload a set of files for Google App Engine that allows you to run your own instance to support internet multi-player. At that time I will also provide detailed instruction for two code points that need modification to support your private multi-player instance. Game on!
