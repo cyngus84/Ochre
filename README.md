@@ -7,6 +7,10 @@ Another common scenario would be for four different people all in different phys
 
 All source code is released under Apache 2.0 unless otherwise noted.
 
+**Running your own multi-player server**
+
+In the ochre-app-engine-server directory you will find a very simply Python server that can be deployed to Google App Engine. This server implements a very simple key-value store that the Android app knows how to use to push and pull game state and therefore allow for Internet multi-player. In the server's main.py you should set the `primary_url` variable to the game data path you want to use. This path plus your App Engine host name should then be used in `CardTableActivity.URL_BASE` to point the application to server. If your App Engine app name were 'my-euchre-server' and the `primary_url` were set to 'euchre_game_data/<string:game_id>' then you would set URL_BASE to 'http://my-euchre-server.appspot.com/euchre_game_data/'
+
 **UPDATE 26-02-2016**
 
 I'm declaring 7eec3d4 as v0.1! This version implements everything I think is minimally required for both, local, hot-seat mode, and over-the-internet multi-player mode. Soon I will upload a set of files for Google App Engine that allows you to run your own instance to support internet multi-player. At that time I will also provide detailed instruction for two code points that need modification to support your private multi-player instance. Game on!
