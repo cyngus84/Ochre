@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.text.ParseException;
 import java.util.Arrays;
 
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -37,6 +38,8 @@ import com.randomsymphony.games.ochre.ui.ScoreBoard;
 import com.randomsymphony.games.ochre.ui.TableDisplay;
 import com.randomsymphony.games.ochre.ui.TrumpDisplay;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -70,6 +73,8 @@ public class CardTableActivity extends FragmentActivity {
 	private static final File FILE_OUTPUT = new File("/sdcard/ochre/state-new.txt");
     private static final String URL_BASE = null;
     private static final String PARAM_API_KEY = "key";
+    private static final String PREFS_NAME = "ochre_prefs";
+    private static final String KEY_GAME_ID = "game_id";
 
     public static GameState fromReader(Reader reader) {
         JsonReader jsonReader = new JsonReader(reader);
@@ -89,6 +94,23 @@ public class CardTableActivity extends FragmentActivity {
         protected void onPostExecute(GameState gameState) {
             mEngine.setGameState(gameState);
             mGameState = gameState;
+            saveCurrentGameId();
+        }
+    }
+    
+    private class ShortUrlTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            return createShortUrl(params[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String shortUrl) {
+            if (!TextUtils.isEmpty(shortUrl)) {
+                updateShortUrl(shortUrl);
+            } else {
+                updateShortUrl(getResources().getString(R.string.no_api_key));
+            }
         }
     }
 
@@ -102,6 +124,7 @@ public class CardTableActivity extends FragmentActivity {
     private TextView mShortUrl;
     private Button mJoin;
     private PlayerDisplaysPresenter mDisplaysPresenter;
+    private Button mResumeButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +134,7 @@ public class CardTableActivity extends FragmentActivity {
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_card_table);
         initGameState();
         initScoreBoard();
@@ -125,21 +149,8 @@ public class CardTableActivity extends FragmentActivity {
             public void onClick(View v) {
                 mEngine.startGame();
                 testEncoder();
-                new AsyncTask<Void, Void, String>() {
-                    @Override
-                    protected String doInBackground(Void... params) {
-                        return createShortUrl(URL_BASE + mGameState.getGameId().toString());
-                    }
-
-                    @Override
-                    protected void onPostExecute(String shortUrl) {
-                        if (!TextUtils.isEmpty(shortUrl)) {
-                            updateShortUrl(shortUrl);
-                        } else {
-                            updateShortUrl(getResources().getString(R.string.no_api_key));
-                        }
-                    }
-                }.execute();
+                new ShortUrlTask().execute(URL_BASE + mGameState.getGameId().toString());
+                saveCurrentGameId();
             }
         });
         Button testButton = (Button) findViewById(R.id.save);
@@ -178,6 +189,27 @@ public class CardTableActivity extends FragmentActivity {
             @Override
             public void onClick(View v) {
                 showJoinDialog();
+            }
+        });
+
+        // set up the resume button to join the last game we were playing
+        mResumeButton = (Button) findViewById(R.id.resume);
+        mResumeButton.setEnabled(!TextUtils.isEmpty(URL_BASE));
+        mResumeButton.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                String gameId = prefs.getString(KEY_GAME_ID, null);
+                allowNewGame(false);
+                if (!TextUtils.isEmpty(gameId)) {
+                    new ShortUrlTask() {
+                        @Override
+                        protected void onPostExecute(String shortUrl) {
+                            super.onPostExecute(shortUrl);
+                            joinGame(shortUrl);
+                        }
+                    }.execute(URL_BASE + gameId);
+                }
             }
         });
 
@@ -442,7 +474,7 @@ public class CardTableActivity extends FragmentActivity {
     private void initScoreBoard() {
     	mScoreBoard = new ScoreBoard();
     	getSupportFragmentManager().beginTransaction().replace(R.id.score_board, mScoreBoard,
-    			TAG_SCORE_BOARD).commit();
+                TAG_SCORE_BOARD).commit();
     }
     
     private void initGameState() {
@@ -466,7 +498,7 @@ public class CardTableActivity extends FragmentActivity {
     
     private void initGameEngine() {
     	mEngine = GameEngine.getInstance(TAG_TRUMP_DISPLAY, TAG_GAME_STATE, TAG_SCORE_BOARD,
-    			TAG_TABLE_DISPLAY, Uri.parse(URL_BASE));
+    			TAG_TABLE_DISPLAY, URL_BASE == null ? null : Uri.parse(URL_BASE));
     	mEngine.setRetainInstance(true);
     	getSupportFragmentManager().beginTransaction().add(mEngine, TAG_GAME_ENGINE).commit();
 
@@ -506,5 +538,15 @@ public class CardTableActivity extends FragmentActivity {
             mPlayerWidgets[ptr].setSeatChangeListener(mDisplaysPresenter);
         }
         mEngine.setPlayerDisplaysPresenter(mDisplaysPresenter);
+    }
+
+    private void saveCurrentGameId() {
+        if (mGameState == null) {
+            Log.w("JMATT", "Game ID save requested, but no valid game state.");
+            return;
+        }
+
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(KEY_GAME_ID, mGameState.getGameId().toString()).apply();
     }
 }
