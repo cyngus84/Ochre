@@ -420,7 +420,12 @@ public class GameEngine extends Fragment implements StateListener {
 			if (mState.getGamePhase() != GameState.Phase.ORDER_UP) {
 				throw new IllegalStateException("In the wrong phase to tranisition to PICK_TRUMP");
 			}
-			
+
+            // disable cards of the same suit as the declined trump
+            for (PlayerDisplay display : mPlayerDisplays.values()) {
+                display.setDisabledTrump(mState.getCurrentRound().trump);
+            }
+
 			mState.setGamePhase(GameState.Phase.PICK_TRUMP);
 			mTrumpDisplay.setToPickMode();
 		}
@@ -849,6 +854,12 @@ public class GameEngine extends Fragment implements StateListener {
         String makerId = activeRound == null ? null : activeRound.maker.getId();
         String dealerId = activeRound == null ? null : activeRound.dealer.getId();
 
+        // determine if there is a trump suit to disable selectors for
+        Card disabledTrump = null;
+        if (phase == Phase.PICK_TRUMP && activeRound != null) {
+            disabledTrump = activeRound.trump;
+        }
+
         for (int ptr = 0, limit = players.length; ptr < limit; ptr++) {
             Player target = players[ptr];
             target.addListener(mNameChangeListener);
@@ -872,6 +883,7 @@ public class GameEngine extends Fragment implements StateListener {
                 }
 
                 display.setDealer(dealerId.equals(display.getPlayer().getId()));
+                display.setDisabledTrump(disabledTrump);
             }
         }
     }

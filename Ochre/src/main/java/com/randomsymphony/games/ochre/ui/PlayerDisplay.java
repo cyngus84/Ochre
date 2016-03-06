@@ -67,6 +67,8 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	private int mTrickCount = 0;
 	private boolean mWideDisplay;
 	private GameState.Phase mPhase = GameState.Phase.NONE;
+	private Card mDisabledTrump = null;
+
 	/**
 	 * Controls whether or not the show/hide controls are enabled
 	 */
@@ -279,11 +281,29 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
         // isSeatedAndTurn is true AND the widget's other control bits are set
         // appropriately
 
+		Card[] playerCards = mPlayer != null ? mPlayer.getCurrentCards() : null;
 		// only show the card selectors if we're active and radios are set to
 		// present
 		for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
-			mCardSelectors[ptr].setVisibility(
-                    isSeatedAndTurn && mRadiosPresent ? View.VISIBLE : View.GONE);
+			boolean visible = isSeatedAndTurn && mRadiosPresent;
+			mCardSelectors[ptr].setVisibility(visible ? View.VISIBLE : View.GONE);
+
+			// there are two times when the card selectors are available,
+			// either when the player is being asked to discard or when they
+			// are being asked to select a trump suit. Only when being asked
+			// to pick a trump suit do we want to disable any of the selectors.
+			// mExtraCardVisible is false when being asked to pick trump
+			boolean disableIneligibleTrump = !mExtraCardVisible && visible;
+
+			// disable selector if there is a card for the selector AND there
+			// is a disabled trump card AND we're eligible to disable
+			// perspective trump cards
+			if (playerCards != null && mDisabledTrump != null && disableIneligibleTrump) {
+				boolean isEligible = playerCards[ptr].getSuit() != mDisabledTrump.getSuit();
+				mCardSelectors[ptr].setEnabled(isEligible);
+			} else {
+				mCardSelectors[ptr].setEnabled(true);
+			}
 		}
 
 		// only show the extra card selector if we're active and its set to visible
@@ -374,9 +394,25 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	    	    break;
 		}
 	}
+
+	/**
+	 * Set a suit to disable. This is used during the {@link Phase#PICK_TRUMP}
+	 * phase of the game where a player can pick a trump suit, but is not
+	 * allowed to pick the suit of the card that was turned up at the beginning
+	 * of the round as perspective trump.
+	 * @param disabledTrump A card of the suit to disable.
+	 */
+	public void setDisabledTrump(Card disabledTrump) {
+		mDisabledTrump = disabledTrump;
+	}
 	
 	@Override
 	public void onStateChange(Phase newPhase) {
+		// if we were previously in PICK_TRUMP phase and how we're not, clear
+		// the disabled suit
+		if (mPhase.equals(Phase.PICK_TRUMP) && !mPhase.equals(newPhase)) {
+			mDisabledTrump = null;
+		}
 		mPhase = newPhase;
 
         // strictly speaking we only care about radio presence when it is the
