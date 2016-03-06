@@ -68,7 +68,7 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v4:19.0.0'
-    compile 'com.squareup.okhttp3:okhttp:3.0.0-RC1'
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
     compile 'com.google.apis:google-api-services-urlshortener:v1-rev41-1.21.0'
     compile 'com.google.http-client:google-http-client-android:1.19.0'
 }
