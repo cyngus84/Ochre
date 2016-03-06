@@ -158,7 +158,7 @@ public class GameStreamer {
     }
 
     private void doRead() {
-        Request request = mBuilderBase.method("GET", null).build();
+        Request request = mBuilderBase.method("GET", null).header("User-Agent", "gzip").build();
         try {
             Response response = mHttpClient.newCall(request).execute();
             String state = null;
