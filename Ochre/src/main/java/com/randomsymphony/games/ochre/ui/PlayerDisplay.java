@@ -134,6 +134,7 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	public void setExtraCardVisibility(boolean isVisible) {
 		if (isVisible != mExtraCardVisible) {
 			mExtraCardVisible = isVisible;
+			mExtraCardSelector.setChecked(false);
 		}
 		redraw();
 	}
@@ -542,8 +543,13 @@ public class PlayerDisplay extends Fragment implements View.OnClickListener, Sta
 	}
 
     private void setRadioVisibility(boolean present) {
-        mRadiosPresent = present;
-    }
+		if (present != mRadiosPresent) {
+			for (int ptr = 0; ptr < mCardSelectors.length; ptr++) {
+				mCardSelectors[ptr].setChecked(false);
+			}
+		}
+		mRadiosPresent = present;
+	}
 
 
     private void enableRename() {
