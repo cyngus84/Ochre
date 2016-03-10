@@ -106,6 +106,7 @@ public class GameStreamer {
     public void pause() {
         if (mWorkerHandler != null) {
             mWorkerHandler.removeMessages(MSG_READ);
+            mWorkerHandler.removeMessages(MSG_WRITE);
         }
     }
 
@@ -113,6 +114,8 @@ public class GameStreamer {
         if (mWorkerHandler != null) {
             mWorkerHandler.removeMessages(MSG_READ);
             mWorkerHandler.sendEmptyMessage(MSG_READ);
+            mWorkerHandler.removeMessages(MSG_WRITE);
+            mWorkerHandler.sendEmptyMessage(MSG_WRITE);
         }
     }
 
@@ -187,12 +190,20 @@ public class GameStreamer {
 
         for (int ptr = 0, limit = newStates.size(); ptr < limit; ptr++) {
             String target = newStates.get(ptr);
-            while (!sendStateUpdate(target)) {
-                try {
-                    Thread.sleep(mPollInterval);
-                } catch (InterruptedException e) {
+            if (!sendStateUpdate(target)) {
+                // sending failed, re-insert the states into the out-going
+                // queue and try again later.
+                synchronized (mStateLock) {
+                    for (int ptr2 = 0; ptr < limit; ptr++, ptr2++) {
+                        mStatePushes.add(ptr2, newStates.get(ptr));
+                    }
                 }
-                Log.d("JMATT", "Trying failed send again.");
+
+                // TODO check if we're paused or cancelled before proceeding
+
+                mWorkerHandler.sendEmptyMessageDelayed(MSG_WRITE, mPollInterval);
+                Log.d("JMATT", "Sending state failed, will retry");
+                return;
             }
         }
     }
